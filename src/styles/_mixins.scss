@@ -1,0 +1,34 @@
+// ============================================================================
+// SIGE-H — Mixins y Utilidades Responsivas SCSS
+// ============================================================================
+
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+@mixin respond-below($bp) {
+  @media (max-width: #{$bp - 1px}) {
+    @content;
+  }
+}
+
+@mixin respond-above($bp) {
+  @media (min-width: #{$bp}) {
+    @content;
+  }
+}
+
+@mixin institutional-card {
+  background-color: var(--sigeh-surface-card);
+  border: 1px solid var(--sigeh-border-subtle);
+  border-radius: var(--sigeh-radius-lg);
+  box-shadow: var(--sigeh-shadow-xs);
+}
+
+@mixin focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--sigeh-primary-600);
+    outline-offset: 2px;
+  }
+}

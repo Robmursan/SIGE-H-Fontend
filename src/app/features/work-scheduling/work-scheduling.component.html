@@ -1,0 +1,269 @@
+<section class="sched-page" aria-label="Programación Laboral Semanal">
+  <app-demo-mode-banner
+    [datasetCode]="queryResult().snapshot?.metadata?.datasetCode ?? 'SIGEH-DEMO-F2-SCHED-2026'"
+    [activeState]="queryResult().state"
+    (stateChange)="setSimulatedState($event)"
+  />
+
+  <!-- Encabezado y Filtros de Programación Laboral -->
+  <header class="sigeh-panel sched-page__toolbar" data-testid="scheduling-toolbar">
+    <div class="sched-page__top">
+      <div>
+        <div class="sched-page__eyebrow">MÓDULO F2 · ROL DE TURNOS Y ESQUEMAS HORARIOS SIGE-H</div>
+        <h2 class="sched-page__title">Programación Laboral y Calendario Semanal</h2>
+        <p class="sched-page__subtitle">
+          Visualización de horarios diurnos, jornadas acumuladas, guardias nocturnas, descansos post-guardia y alertas de cobertura.
+        </p>
+      </div>
+      @if (queryResult().snapshot; as snap) {
+        <span class="sched-page__week-pill" data-testid="scheduling-week-label">
+          {{ snap.weekRangeLabel }}
+        </span>
+      }
+    </div>
+
+    <div class="sched-page__filters">
+      <div class="sched-page__field">
+        <label for="sched-hospital">Hospital</label>
+        <select
+          id="sched-hospital"
+          class="sched-page__select"
+          [ngModel]="selectedHospitalId()"
+          (ngModelChange)="onHospitalChange($event)"
+          data-testid="select-scheduling-hospital"
+        >
+          <option value="ALL">Todos los hospitales</option>
+          @if (queryResult().snapshot; as snap) {
+            @for (h of snap.availableHospitals; track h.id) {
+              <option [value]="h.id">{{ h.name }}</option>
+            }
+          }
+        </select>
+      </div>
+
+      <div class="sched-page__field">
+        <label for="sched-service">Servicio clínico</label>
+        <select
+          id="sched-service"
+          class="sched-page__select"
+          [ngModel]="selectedServiceId()"
+          (ngModelChange)="onServiceChange($event)"
+          data-testid="select-scheduling-service"
+        >
+          <option value="ALL">Todos los servicios</option>
+          @for (s of filteredServicesOptions(); track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="sched-page__field">
+        <label for="sched-shift">Turno</label>
+        <select
+          id="sched-shift"
+          class="sched-page__select"
+          [ngModel]="selectedShift()"
+          (ngModelChange)="onShiftChange($event)"
+          data-testid="select-scheduling-shift"
+        >
+          <option value="ALL">Todos los turnos</option>
+          <option value="Matutino">Matutino</option>
+          <option value="Vespertino">Vespertino</option>
+          <option value="Nocturno">Nocturno</option>
+          <option value="Jornada Acumulada">Jornada Acumulada</option>
+        </select>
+      </div>
+
+      <div class="sched-page__field">
+        <label for="sched-scheme">Esquema de horario</label>
+        <select
+          id="sched-scheme"
+          class="sched-page__select"
+          [ngModel]="selectedScheme()"
+          (ngModelChange)="onSchemeChange($event)"
+          data-testid="select-scheduling-scheme"
+        >
+          <option value="ALL">Todos los esquemas</option>
+          <option value="Horario Diurno">Horario Diurno</option>
+          <option value="Jornada Acumulada">Jornada Acumulada</option>
+          <option value="Guardia Nocturna">Guardia Nocturna</option>
+        </select>
+      </div>
+
+      <div class="sched-page__field">
+        <label for="sched-search">Buscar personal</label>
+        <input
+          id="sched-search"
+          type="search"
+          class="sched-page__input"
+          placeholder="Nombre, matrícula o servicio..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          data-testid="input-scheduling-search"
+        />
+      </div>
+
+      <div class="sched-page__actions">
+        <button
+          type="button"
+          class="sigeh-btn sigeh-btn--outline"
+          data-testid="btn-scheduling-reset"
+          (click)="resetFilters()"
+        >
+          Restablecer
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Estados de Carga, Vacío, Error y Acceso Denegado -->
+  @if (queryResult().state !== 'ready') {
+    <app-ui-state-panel
+      [state]="nonReadyState()"
+      [errorDetails]="queryResult().error"
+      (retryRequested)="setSimulatedState('ready')"
+      (resetRequested)="resetFilters()"
+      (restoreAccessRequested)="setSimulatedState('ready')"
+    />
+  }
+
+  @if (queryResult().state === 'ready' && queryResult().snapshot; as snap) {
+    <!-- 1. Identificación de Esquemas Horarios SIGE-H (Diurnos, Acumulados y Guardias Nocturnas) -->
+    <section
+      class="sched-page__schemes-grid"
+      aria-label="Modalidades de horarios y descansos SIGE-H"
+      data-testid="scheduling-schemes-grid"
+    >
+      @for (sc of snap.schemeSummaries; track sc.scheme) {
+        <article class="sigeh-panel sched-page__scheme-card">
+          <div class="sched-page__scheme-top">
+            <strong class="sched-page__scheme-title">{{ sc.scheme }}</strong>
+            <span class="sched-page__scheme-badge">{{ sc.shiftBadgeCode }}</span>
+          </div>
+          <p class="sched-page__scheme-desc">{{ sc.description }}</p>
+          <span class="sched-page__scheme-count">
+            <strong>{{ sc.staffCount }}</strong> enfermeras(os) en la vista actual
+          </span>
+        </article>
+      }
+    </section>
+
+    <!-- 2. Matriz de Calendario Semanal -->
+    <section
+      class="sigeh-panel"
+      aria-labelledby="heading-weekly-calendar"
+      data-testid="weekly-calendar-section"
+    >
+      <div class="sigeh-panel__header">
+        <div>
+          <h3 id="heading-weekly-calendar" class="sigeh-panel__title">
+            Calendario Semanal de Personal Programado
+          </h3>
+          <p class="sigeh-panel__subtitle">
+            Distribución diaria de turnos y descansos (Lunes a Domingo) · Sin reglas de cálculo modificables en F2
+          </p>
+        </div>
+
+        <div class="sched-page__legend" aria-label="Leyenda de códigos de turno">
+          <span class="sched-cell sched-cell--DIURNO_MATUTINO">MAT Diurno</span>
+          <span class="sched-cell sched-cell--DIURNO_VESPERTINO">VES Diurno</span>
+          <span class="sched-cell sched-cell--GUARDIA_NOCTURNA">NOC Guardia</span>
+          <span class="sched-cell sched-cell--JORNADA_ACUMULADA">ACU Acumulada</span>
+          <span class="sched-cell sched-cell--DESCANSO_POST_GUARDIA">D-PG Post-Guardia</span>
+          <span class="sched-cell sched-cell--DESCANSO_PROGRAMADO">DESC Descanso</span>
+          <span class="sched-cell sched-cell--INCIDENCIA_AUSENCIA">INC Incidencia</span>
+        </div>
+      </div>
+
+      <div class="sigeh-table-wrap">
+        <table class="sigeh-table sched-page__calendar-table" data-testid="weekly-schedule-table">
+          <thead>
+            <tr>
+              <th scope="col">Personal Programado / Adscripción</th>
+              <th scope="col">Esquema / Turno</th>
+              @for (day of snap.weekDaysHeader; track day.dayIso) {
+                <th scope="col" class="sched-page__day-col">
+                  <span class="sched-page__day-name">{{ day.dayShortLabel }}</span>
+                  <span class="sched-page__day-num">{{ day.dayNumberLabel }}</span>
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of snap.rows; track row.rowId) {
+              <tr [attr.data-testid]="'schedule-row-' + row.rowId">
+                <td>
+                  <span class="sched-page__emp-code">{{ row.employeeNumberDemo }}</span>
+                  <strong class="sched-page__emp-name">{{ row.employeeNameDemo }}</strong>
+                  <span class="text-muted">{{ row.nominalCategory }} · {{ row.serviceName }}</span>
+                </td>
+                <td>
+                  <strong class="sched-page__emp-name">{{ row.scheduleScheme }}</strong>
+                  <span class="text-muted">{{ row.primaryShift }}</span>
+                </td>
+                @for (cell of row.days; track cell.dayIso) {
+                  <td class="sched-page__day-td">
+                    <div
+                      class="sched-cell"
+                      [class]="'sched-cell--' + cell.assignmentType"
+                      [attr.title]="cell.displayLabel + ' (' + cell.timeWindowLabel + ')'"
+                    >
+                      <strong class="sched-cell__code">{{ cell.shortCode }}</strong>
+                      <span class="sched-cell__time">{{ cell.timeWindowLabel }}</span>
+                      @if (cell.noteDemo) {
+                        <span class="sched-cell__note">{{ cell.noteDemo }}</span>
+                      }
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. Visualización Inicial de Incidencias y Alertas de Cobertura -->
+    <section
+      class="sigeh-panel"
+      aria-labelledby="heading-coverage-alerts"
+      data-testid="scheduling-alerts-section"
+    >
+      <div class="sigeh-panel__header">
+        <div>
+          <h3 id="heading-coverage-alerts" class="sigeh-panel__title">
+            Incidencias y Alertas de Cobertura Semanal (Visualización Inicial)
+          </h3>
+          <p class="sigeh-panel__subtitle">
+            Detección visual de descubiertos, suplencias y balance de cobertura en la semana activa
+          </p>
+        </div>
+        <app-status-badge
+          variant="warning"
+          [customLabel]="snap.coverageAlerts.length + ' avisos de programación'"
+        />
+      </div>
+
+      <div class="sched-page__alerts-grid">
+        @for (alr of snap.coverageAlerts; track alr.alertId) {
+          <article
+            class="sched-page__alert-card"
+            [attr.data-testid]="'coverage-alert-' + alr.alertId"
+          >
+            <div class="sched-page__scheme-top">
+              <span class="sched-page__emp-code">{{ alr.dayLabel }}</span>
+              <app-status-badge [variant]="alr.severity" />
+            </div>
+            <strong class="sched-page__emp-name">{{ alr.serviceName }}</strong>
+            <span class="text-muted">{{ alr.scheme }} · {{ alr.shiftLabel }}</span>
+            <p class="sched-page__scheme-desc">{{ alr.description }}</p>
+            <div class="sched-page__alert-footer">
+              <span>Requerido: <strong>{{ alr.requiredCount }}</strong></span>
+              <span>Programado: <strong>{{ alr.scheduledCount }}</strong></span>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</section>

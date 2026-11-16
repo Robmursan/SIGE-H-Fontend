@@ -1,0 +1,335 @@
+<section class="pers-page" aria-label="Gestión de Personal de Enfermería">
+  <app-demo-mode-banner
+    [datasetCode]="queryResult().snapshot?.metadata?.datasetCode ?? 'SIGEH-DEMO-F2-PERSONAL-2026'"
+    [activeState]="queryResult().state"
+    (stateChange)="setSimulatedState($event)"
+  />
+
+  <!-- Encabezado y Filtros del Padrón de Personal -->
+  <header class="sigeh-panel pers-page__toolbar" data-testid="personnel-toolbar">
+    <div class="pers-page__top">
+      <div>
+        <div class="pers-page__eyebrow">MÓDULO F2 · PADRÓN NOMINAL Y ADSCRIPCIÓN (SOLO LECTURA)</div>
+        <h2 class="pers-page__title">Gestión de Personal y Fuerza de Trabajo</h2>
+        <p class="pers-page__subtitle">
+          Consulta de plantilla institucional, categoría nominal, función operativa, servicio de pertenencia y estado laboral.
+        </p>
+      </div>
+      <span class="pers-page__readonly-tag" data-testid="personnel-readonly-badge">
+        MODO CONSULTA · ESCRITURA PENDIENTE OPENAPI
+      </span>
+    </div>
+
+    <div class="pers-page__filters">
+      <div class="pers-page__field">
+        <label for="pers-search">Búsqueda nominal o matrícula</label>
+        <input
+          id="pers-search"
+          type="search"
+          class="pers-page__input"
+          placeholder="Nombre, matrícula, función..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          data-testid="input-personnel-search"
+        />
+      </div>
+
+      <div class="pers-page__field">
+        <label for="pers-hospital">Hospital de adscripción</label>
+        <select
+          id="pers-hospital"
+          class="pers-page__select"
+          [ngModel]="selectedHospitalId()"
+          (ngModelChange)="onHospitalChange($event)"
+          data-testid="select-personnel-hospital"
+        >
+          <option value="ALL">Todos los hospitales</option>
+          @if (queryResult().snapshot; as snap) {
+            @for (h of snap.availableHospitals; track h.id) {
+              <option [value]="h.id">{{ h.name }}</option>
+            }
+          }
+        </select>
+      </div>
+
+      <div class="pers-page__field">
+        <label for="pers-service">Servicio de pertenencia</label>
+        <select
+          id="pers-service"
+          class="pers-page__select"
+          [ngModel]="selectedServiceId()"
+          (ngModelChange)="onServiceChange($event)"
+          data-testid="select-personnel-service"
+        >
+          <option value="ALL">Todos los servicios</option>
+          @for (s of filteredServicesOptions(); track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="pers-page__field">
+        <label for="pers-category">Categoría nominal</label>
+        <select
+          id="pers-category"
+          class="pers-page__select"
+          [ngModel]="selectedCategory()"
+          (ngModelChange)="onCategoryChange($event)"
+          data-testid="select-personnel-category"
+        >
+          <option value="ALL">Todas las categorías</option>
+          @for (cat of categories; track cat) {
+            <option [value]="cat">{{ cat }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="pers-page__field">
+        <label for="pers-status">Estado laboral</label>
+        <select
+          id="pers-status"
+          class="pers-page__select"
+          [ngModel]="selectedStatus()"
+          (ngModelChange)="onStatusChange($event)"
+          data-testid="select-personnel-status"
+        >
+          <option value="ALL">Todos los estados</option>
+          @for (st of employmentStatuses; track st) {
+            <option [value]="st">{{ st }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="pers-page__actions">
+        <button
+          type="button"
+          class="sigeh-btn sigeh-btn--outline"
+          data-testid="btn-personnel-reset"
+          (click)="resetFilters()"
+        >
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Indicadores de Plantilla -->
+  @if (queryResult().snapshot; as snap) {
+    @if (queryResult().state === 'ready') {
+      <section
+        class="pers-page__kpi-grid"
+        aria-label="Indicadores de plantilla"
+        data-testid="personnel-kpi-grid"
+      >
+        @for (kpi of snap.indicators; track kpi.id) {
+          <app-kpi-stat-card [metric]="kpi" />
+        }
+      </section>
+    }
+  }
+
+  <!-- Estados de Carga, Vacío, Error y Acceso Denegado -->
+  @if (queryResult().state !== 'ready') {
+    <app-ui-state-panel
+      [state]="nonReadyState()"
+      [errorDetails]="queryResult().error"
+      (retryRequested)="setSimulatedState('ready')"
+      (resetRequested)="resetFilters()"
+      (restoreAccessRequested)="setSimulatedState('ready')"
+    />
+  }
+
+  <!-- Vista Maestro-Detalle: Tabla Paginada + Ficha de Empleado -->
+  @if (queryResult().state === 'ready' && queryResult().snapshot; as snap) {
+    <div class="pers-page__workspace" data-testid="personnel-workspace">
+      <!-- Tabla de Personal con Paginación -->
+      <section class="sigeh-panel" aria-labelledby="heading-personnel-table">
+        <div class="sigeh-panel__header">
+          <div>
+            <h3 id="heading-personnel-table" class="sigeh-panel__title">
+              Directorio Operativo de Personal de Enfermería
+            </h3>
+            <p class="sigeh-panel__subtitle">
+              Mostrando {{ snap.pagination.startItemIndex }}–{{ snap.pagination.endItemIndex }} de
+              {{ snap.pagination.totalItems }} registros sintéticos
+            </p>
+          </div>
+
+          <div class="pers-page__page-size">
+            <label for="pers-pagesize-select">Filas:</label>
+            <select
+              id="pers-pagesize-select"
+              class="pers-page__select"
+              [ngModel]="pageSize()"
+              (ngModelChange)="onPageSizeChange($event)"
+              data-testid="select-personnel-pagesize"
+            >
+              <option [ngValue]="5">5 por página</option>
+              <option [ngValue]="10">10 por página</option>
+              <option [ngValue]="12">12 por página</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sigeh-table-wrap">
+          <table class="sigeh-table" data-testid="personnel-table">
+            <thead>
+              <tr>
+                <th scope="col">Matrícula / Nombre (Demo)</th>
+                <th scope="col">Categoría Nominal / Función</th>
+                <th scope="col">Servicio de Pertenencia</th>
+                <th scope="col">Turno / Esquema</th>
+                <th scope="col">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (emp of snap.items; track emp.employeeId) {
+                <tr
+                  class="pers-page__row"
+                  [class.pers-page__row--selected]="
+                    snap.selectedEmployee?.employeeId === emp.employeeId
+                  "
+                  [attr.data-testid]="'personnel-row-' + emp.employeeId"
+                  (click)="selectEmployee(emp.employeeId)"
+                >
+                  <td>
+                    <span class="pers-page__code">{{ emp.employeeNumberDemo }}</span>
+                    <strong class="pers-page__name">{{ emp.fullNameDemo }}</strong>
+                  </td>
+                  <td>
+                    <strong class="pers-page__cat">{{ emp.nominalCategory }}</strong>
+                    <span class="text-muted">{{ emp.operationalFunction }}</span>
+                  </td>
+                  <td>
+                    <strong class="pers-page__srv">{{ emp.affiliation.serviceName }}</strong>
+                    <span class="text-muted">{{ emp.affiliation.hospitalName }}</span>
+                  </td>
+                  <td>
+                    <span class="pers-page__scheme">{{ emp.affiliation.scheduleScheme }}</span>
+                    <span class="text-muted">Turno: {{ emp.affiliation.baseShift }}</span>
+                  </td>
+                  <td>
+                    <app-status-badge
+                      [variant]="emp.statusSeverity"
+                      [customLabel]="emp.employmentStatus"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Controles de Paginación -->
+        <footer class="pers-page__pagination" data-testid="personnel-pagination">
+          <span class="text-muted">
+            Página {{ snap.pagination.currentPage }} de {{ snap.pagination.totalPages }}
+          </span>
+          <div class="pers-page__page-btns">
+            <button
+              type="button"
+              class="sigeh-btn sigeh-btn--outline"
+              [disabled]="snap.pagination.currentPage <= 1"
+              data-testid="btn-page-prev"
+              (click)="goToPage(snap.pagination.currentPage - 1)"
+            >
+              ‹ Anterior
+            </button>
+            <button
+              type="button"
+              class="sigeh-btn sigeh-btn--outline"
+              [disabled]="snap.pagination.currentPage >= snap.pagination.totalPages"
+              data-testid="btn-page-next"
+              (click)="goToPage(snap.pagination.currentPage + 1)"
+            >
+              Siguiente ›
+            </button>
+          </div>
+        </footer>
+      </section>
+
+      <!-- Detalle de Empleado Seleccionado -->
+      @if (snap.selectedEmployee; as emp) {
+        <aside
+          class="sigeh-panel pers-page__detail"
+          aria-labelledby="heading-employee-detail"
+          data-testid="employee-detail-panel"
+        >
+          <div class="sigeh-panel__header">
+            <div>
+              <span class="pers-page__code">{{ emp.employeeId }} · {{ emp.employeeNumberDemo }}</span>
+              <h3 id="heading-employee-detail" class="sigeh-panel__title">
+                {{ emp.fullNameDemo }}
+              </h3>
+              <p class="sigeh-panel__subtitle">{{ emp.specialtyTag }}</p>
+            </div>
+            <app-status-badge
+              [variant]="emp.statusSeverity"
+              [customLabel]="emp.employmentStatus"
+            />
+          </div>
+
+          <div class="pers-page__section">
+            <h4 class="pers-page__subhead">1. Categoría Nominal y Función Operativa</h4>
+            <dl class="pers-page__dl">
+              <div>
+                <dt>Categoría Nominal</dt>
+                <dd>{{ emp.nominalCategory }}</dd>
+              </div>
+              <div>
+                <dt>Función Operativa</dt>
+                <dd>{{ emp.operationalFunction }}</dd>
+              </div>
+              <div>
+                <dt>Cédula Profesional (Demo)</dt>
+                <dd class="font-mono">{{ emp.professionalLicenseDemo }}</dd>
+              </div>
+              <div>
+                <dt>Último Pase de Lista</dt>
+                <dd>{{ emp.lastRosterCheckDemo }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="pers-page__section">
+            <h4 class="pers-page__subhead">2. Adscripción Institucional y Servicio de Pertenencia</h4>
+            <dl class="pers-page__dl">
+              <div>
+                <dt>Hospital de Adscripción</dt>
+                <dd>{{ emp.affiliation.hospitalName }}</dd>
+              </div>
+              <div>
+                <dt>División Clínica</dt>
+                <dd>{{ emp.affiliation.divisionName }}</dd>
+              </div>
+              <div>
+                <dt>Servicio de Pertenencia</dt>
+                <dd>{{ emp.affiliation.serviceName }}</dd>
+              </div>
+              <div>
+                <dt>Código de Plaza / Modalidad</dt>
+                <dd>
+                  <span class="font-mono">{{ emp.affiliation.positionCodeDemo }}</span> ·
+                  {{ emp.affiliation.contractModalityDemo }}
+                </dd>
+              </div>
+              <div>
+                <dt>Esquema Horario y Turno Base</dt>
+                <dd>{{ emp.affiliation.scheduleScheme }} ({{ emp.affiliation.baseShift }})</dd>
+              </div>
+              <div>
+                <dt>Antigüedad Institucional (Demo)</dt>
+                <dd>{{ emp.affiliation.seniorityYearsDemo }} años</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="pers-page__section">
+            <h4 class="pers-page__subhead">3. Observaciones de Supervisión</h4>
+            <p class="pers-page__obs">{{ emp.supervisorObservations }}</p>
+          </div>
+        </aside>
+      }
+    </div>
+  }
+</section>

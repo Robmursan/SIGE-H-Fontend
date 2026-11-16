@@ -1,0 +1,1114 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ],
+        "x-sigeh-status": "local-tested"
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "description": "Verifica que el proceso de la API NestJS está activo y respondiendo peticiones HTTP sin depender de PostgreSQL.",
+        "operationId": "getHealthLive",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Proceso API activo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LivenessResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Health básico de liveness de la API (CU-OPS-01)",
+        "tags": [
+          "Health"
+        ],
+        "x-sigeh-status": "local-tested"
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "description": "Verifica conectividad con el pool de PostgreSQL (SELECT 1) y la existencia del esquema configurado antes de recibir tráfico operativo.",
+        "operationId": "getHealthReady",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "API y esquema PostgreSQL listos para operar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "PostgreSQL inaccesible o esquema sigeh no disponible (respuesta sanitizada)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Readiness de PostgreSQL y esquema sigeh (CU-OPS-02)",
+        "tags": [
+          "Health"
+        ],
+        "x-sigeh-status": "local-tested"
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "description": "Ejecuta la verificación de readiness contra el pool de PostgreSQL en el esquema configurado y retorna el estado operativo sin exponer credenciales.",
+        "operationId": "getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "API y base de datos PostgreSQL operativas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Fallo de conectividad o indisponibilidad de PostgreSQL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verificar salud de la API y conexión a PostgreSQL (compatibilidad Sprint 0 / CU-OPS-02)",
+        "tags": [
+          "Health"
+        ],
+        "x-sigeh-status": "local-tested"
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "iamLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Entrada inválida, sin datos sensibles"
+          },
+          "401": {
+            "description": "Credencial o sesión inválida"
+          },
+          "429": {
+            "description": "Límite persistente de intentos o capacidad KDF"
+          },
+          "503": {
+            "description": "IAM deshabilitado o persistencia no disponible"
+          }
+        },
+        "summary": "Autenticación local y sesión persistente",
+        "tags": [
+          "IAM"
+        ],
+        "x-sigeh-status": "qa-tested-disabled-by-default"
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "iamRefresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Entrada inválida, sin datos sensibles"
+          },
+          "401": {
+            "description": "Credencial o sesión inválida"
+          },
+          "429": {
+            "description": "Límite persistente"
+          },
+          "503": {
+            "description": "IAM deshabilitado o persistencia no disponible"
+          }
+        },
+        "summary": "Rotar refresh opaco; replay revoca familia",
+        "tags": [
+          "IAM"
+        ],
+        "x-sigeh-status": "qa-tested-disabled-by-default"
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "iamMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Entrada inválida, sin datos sensibles"
+          },
+          "401": {
+            "description": "Credencial o sesión inválida"
+          },
+          "503": {
+            "description": "IAM deshabilitado o persistencia no disponible"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Perfil y facultades explícitas vigentes",
+        "tags": [
+          "IAM"
+        ],
+        "x-sigeh-status": "qa-tested-disabled-by-default"
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "iamLogout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Entrada inválida, sin datos sensibles"
+          },
+          "401": {
+            "description": "Credencial o sesión inválida"
+          },
+          "503": {
+            "description": "IAM deshabilitado o persistencia no disponible"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revocar la sesión actual",
+        "tags": [
+          "IAM"
+        ],
+        "x-sigeh-status": "qa-tested-disabled-by-default"
+      }
+    },
+    "/api/v1/auth/sessions": {
+      "get": {
+        "operationId": "iamSessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Entrada inválida, sin datos sensibles"
+          },
+          "401": {
+            "description": "Credencial o sesión inválida"
+          },
+          "503": {
+            "description": "IAM deshabilitado o persistencia no disponible"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Últimas 50 sesiones propias, sin tokens",
+        "tags": [
+          "IAM"
+        ],
+        "x-sigeh-status": "qa-tested-disabled-by-default"
+      }
+    },
+    "/api/v1/auth/sessions/{sessionId}": {
+      "delete": {
+        "operationId": "iamRevokeSession",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Entrada inválida, sin datos sensibles"
+          },
+          "401": {
+            "description": "Credencial o sesión inválida"
+          },
+          "404": {
+            "description": "Sesión no disponible para el actor"
+          },
+          "503": {
+            "description": "IAM deshabilitado o persistencia no disponible"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revocar una sesión propia",
+        "tags": [
+          "IAM"
+        ],
+        "x-sigeh-status": "qa-tested-disabled-by-default"
+      }
+    },
+    "/api/v1/hospitales": {
+      "get": {
+        "operationId": "listAuthorizedHospitals",
+        "parameters": [
+          {
+            "name": "hospitalId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "divisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "servicioId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "UUID exclusivo, orden ascendente",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationReferencePageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtros o cursor inválidos; hospitalId obligatorio en recursos hijos"
+          },
+          "401": {
+            "description": "Sesión inválida"
+          },
+          "403": {
+            "description": "Facultad o alcance insuficiente"
+          },
+          "503": {
+            "description": "IAM deshabilitado o persistencia no disponible"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Referencias de hospitales autorizados (IDs y estado)",
+        "tags": [
+          "Organización"
+        ],
+        "x-sigeh-status": "qa-tested-disabled-by-default",
+        "x-sigeh-projection": "identifiers-hierarchy-active-only"
+      }
+    },
+    "/api/v1/hospitales/{hospitalId}/divisiones": {
+      "get": {
+        "operationId": "listAuthorizedDivisions",
+        "parameters": [
+          {
+            "name": "hospitalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hospitalId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "divisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "servicioId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "UUID exclusivo, orden ascendente",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationReferencePageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtros o cursor inválidos; hospitalId obligatorio en recursos hijos"
+          },
+          "401": {
+            "description": "Sesión inválida"
+          },
+          "403": {
+            "description": "Facultad o alcance insuficiente"
+          },
+          "503": {
+            "description": "IAM deshabilitado o persistencia no disponible"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Referencias de divisiones por hospital autorizado",
+        "tags": [
+          "Organización"
+        ],
+        "x-sigeh-status": "qa-tested-disabled-by-default",
+        "x-sigeh-projection": "identifiers-hierarchy-active-only"
+      }
+    },
+    "/api/v1/servicios": {
+      "get": {
+        "operationId": "listAuthorizedServices",
+        "parameters": [
+          {
+            "name": "hospitalId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "divisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "servicioId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "UUID exclusivo, orden ascendente",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationReferencePageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtros o cursor inválidos; hospitalId obligatorio en recursos hijos"
+          },
+          "401": {
+            "description": "Sesión inválida"
+          },
+          "403": {
+            "description": "Facultad o alcance insuficiente"
+          },
+          "503": {
+            "description": "IAM deshabilitado o persistencia no disponible"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Referencias de servicios por hospital/división autorizados",
+        "tags": [
+          "Organización"
+        ],
+        "x-sigeh-status": "qa-tested-disabled-by-default",
+        "x-sigeh-projection": "identifiers-hierarchy-active-only"
+      }
+    },
+    "/api/v1/meta/version": {
+      "get": {
+        "description": "Metadatos técnicos sin datos hospitalarios. No requiere sesión ni consulta PostgreSQL. No acredita readiness ni compatibilidad de clientes.",
+        "operationId": "getApiContractVersion",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiVersionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Consultar versión del contrato API (CU-OPS-03)",
+        "tags": [
+          "Operaciones"
+        ],
+        "x-sigeh-status": "local-tested"
+      }
+    }
+  },
+  "info": {
+    "title": "SIGE-H API",
+    "description": "Sistema Integral de Gestión de Enfermería Hospitalaria - API REST",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "LivenessResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Estado de vida (liveness) del proceso API (CU-OPS-01)",
+            "example": "ok",
+            "enum": [
+              "ok"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "description": "Identificador lógico del servicio API",
+            "example": "sige-h-api"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Marca temporal UTC de la verificación en formato ISO 8601",
+            "example": "2026-11-10T22:00:00.000Z"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "timestamp"
+        ]
+      },
+      "DatabaseHealthUpDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Estado de conectividad con PostgreSQL",
+            "example": "up",
+            "enum": [
+              "up"
+            ]
+          },
+          "schema": {
+            "type": "string",
+            "description": "Esquema configurado en PostgreSQL",
+            "example": "sigeh"
+          },
+          "schemaVerified": {
+            "type": "boolean",
+            "description": "Indica si el esquema configurado fue verificado en information_schema.schemata",
+            "example": true
+          },
+          "latencyMs": {
+            "type": "number",
+            "description": "Latencia de verificación SQL en milisegundos",
+            "example": 2
+          }
+        },
+        "required": [
+          "status",
+          "schema",
+          "schemaVerified",
+          "latencyMs"
+        ]
+      },
+      "HealthResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Estado general de preparación (readiness) del servicio",
+            "example": "ok",
+            "enum": [
+              "ok"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "description": "Identificador lógico del servicio API",
+            "example": "sige-h-api"
+          },
+          "database": {
+            "description": "Diagnóstico de conectividad y esquema en PostgreSQL",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DatabaseHealthUpDto"
+              }
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Marca temporal UTC de la verificación en formato ISO 8601",
+            "example": "2026-11-10T22:00:00.000Z"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "database",
+          "timestamp"
+        ]
+      },
+      "DatabaseHealthDownDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Estado de conectividad o preparación de PostgreSQL cuando falla la sonda",
+            "example": "down",
+            "enum": [
+              "down"
+            ]
+          },
+          "schema": {
+            "type": "string",
+            "description": "Esquema configurado en PostgreSQL",
+            "example": "sigeh"
+          },
+          "schemaVerified": {
+            "type": "boolean",
+            "description": "Indica si el esquema pudo ser verificado antes del fallo",
+            "example": false
+          }
+        },
+        "required": [
+          "status",
+          "schema",
+          "schemaVerified"
+        ]
+      },
+      "HealthErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Estado general cuando hay degradación crítica o falta de preparación",
+            "example": "error",
+            "enum": [
+              "error"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "description": "Identificador lógico del servicio API",
+            "example": "sige-h-api"
+          },
+          "database": {
+            "description": "Diagnóstico sanitizado de la base de datos",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DatabaseHealthDownDto"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje público sanitizado sin exponer credenciales ni trazas internas",
+            "example": "Base de datos PostgreSQL no disponible"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Marca temporal UTC del fallo en formato ISO 8601",
+            "example": "2026-11-10T22:00:00.000Z"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "database",
+          "message",
+          "timestamp"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "identificador": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "cuenta_ficticia"
+          },
+          "password": {
+            "type": "string",
+            "writeOnly": true,
+            "maxLength": 1024
+          }
+        },
+        "required": [
+          "identificador",
+          "password"
+        ]
+      },
+      "TokensDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expiresIn": {
+            "type": "number",
+            "example": 300
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "tokenType",
+          "expiresIn",
+          "sessionId"
+        ]
+      },
+      "RefreshDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "writeOnly": true,
+            "minLength": 64,
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "ProfileDto": {
+        "type": "object",
+        "properties": {
+          "usuarioId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "local"
+            ]
+          },
+          "assignments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "nullable": true,
+                  "enum": [
+                    "TITULAR",
+                    "ENCARGADO"
+                  ]
+                },
+                "scope": {
+                  "type": "object",
+                  "properties": {
+                    "hospitalId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "divisionId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "nullable": true
+                    },
+                    "servicioId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "nullable": true
+                    }
+                  }
+                },
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "usuarioId",
+          "sessionId",
+          "provider",
+          "assignments"
+        ]
+      },
+      "SessionDto": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "idleExpiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "revokedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "current": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sessionId",
+          "createdAt",
+          "expiresAt",
+          "idleExpiresAt",
+          "revokedAt",
+          "current"
+        ]
+      },
+      "OrganizationReferenceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "hospitalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "divisionId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "servicioId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "hospitalId",
+          "divisionId",
+          "servicioId",
+          "activo"
+        ]
+      },
+      "OrganizationReferencePageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganizationReferenceDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "id:asc"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "limit",
+          "order"
+        ]
+      },
+      "ApiVersionResponseDto": {
+        "type": "object",
+        "properties": {
+          "apiVersion": {
+            "type": "string",
+            "example": "1.0.0",
+            "description": "Versión del contrato API, igual a info.version de OpenAPI."
+          },
+          "apiBasePath": {
+            "type": "string",
+            "example": "/api/v1",
+            "description": "Prefijo público de la API."
+          }
+        },
+        "required": [
+          "apiVersion",
+          "apiBasePath"
+        ]
+      }
+    }
+  },
+  "x-sigeh-deployment": "IAM and ORG disabled by default; enabled only in temporary QA tests",
+  "x-sigeh-pending-resources": [
+    {
+      "resource": "descriptive organization fields",
+      "reason": "SQL column privileges not authorized"
+    },
+    {
+      "resource": "personal and adscripciones",
+      "reason": "SQL SELECT privileges and read-faculty matrix pending"
+    },
+    {
+      "resource": "programacion and operational dashboard",
+      "reason": "SQL SELECT privileges and read-faculty matrix pending"
+    },
+    {
+      "resource": "incidencias, cobertura, disponibilidad",
+      "reason": "SQL privileges and applicable business rules pending"
+    }
+  ]
+}

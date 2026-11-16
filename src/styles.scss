@@ -1,0 +1,102 @@
+@use 'styles/tokens';
+@use 'styles/mixins';
+@use 'styles/layout';
+@use 'styles/components';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: var(--sigeh-font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--sigeh-text-primary);
+  background-color: var(--sigeh-surface-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+// Clases utilitarias institucionales reutilizables
+.sigeh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sigeh-space-2);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--sigeh-radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &:focus-visible {
+    outline: 2px solid var(--sigeh-primary-600);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    background-color: var(--sigeh-primary-800);
+    color: #ffffff;
+
+    &:hover:not(:disabled) {
+      background-color: var(--sigeh-primary-900);
+    }
+  }
+
+  &--outline {
+    background-color: var(--sigeh-surface-card);
+    color: var(--sigeh-text-secondary);
+    border-color: var(--sigeh-border-strong);
+
+    &:hover:not(:disabled) {
+      background-color: var(--sigeh-surface-subtle);
+      color: var(--sigeh-text-primary);
+    }
+  }
+
+  &--subtle {
+    background-color: var(--sigeh-primary-50);
+    color: var(--sigeh-primary-800);
+    border-color: var(--sigeh-primary-100);
+
+    &:hover:not(:disabled) {
+      background-color: var(--sigeh-primary-100);
+    }
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

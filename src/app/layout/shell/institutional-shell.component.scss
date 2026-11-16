@@ -1,0 +1,237 @@
+@use '../../../styles/mixins' as m;
+
+.shell__brand-titles {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.shell__brand-acronym {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.shell__brand-name {
+  font-size: 0.72rem;
+  color: var(--sigeh-text-on-dark-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shell__mobile-close {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: var(--sigeh-radius-sm);
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+
+  @include m.respond-above(m.$breakpoint-lg) {
+    display: none;
+  }
+}
+
+.shell__unit-card {
+  margin: var(--sigeh-space-3) var(--sigeh-space-4);
+  padding: var(--sigeh-space-3);
+  border-radius: var(--sigeh-radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.shell__unit-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #5eead4;
+}
+
+.shell__unit-title {
+  font-size: 0.82rem;
+  color: #fff;
+}
+
+.shell__unit-meta,
+.shell__nav-subtitle,
+.shell__arch-status {
+  font-size: 0.72rem;
+  color: var(--sigeh-text-on-dark-muted);
+}
+
+.shell__nav {
+  flex: 1;
+  padding: var(--sigeh-space-2) var(--sigeh-space-3);
+}
+
+.shell__nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.shell__nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--sigeh-space-3);
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--sigeh-radius-md);
+  color: var(--sigeh-text-on-dark-muted);
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+  }
+
+  &--active {
+    background: var(--sigeh-primary-800);
+    color: #fff;
+    .shell__nav-indicator {
+      background: #2dd4bf;
+    }
+  }
+}
+
+.shell__nav-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.shell__nav-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shell__nav-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.shell__nav-badge {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--sigeh-radius-full);
+  background: rgba(45, 212, 191, 0.18);
+  color: #5eead4;
+}
+
+.shell__sidebar-footer {
+  padding: var(--sigeh-space-3) var(--sigeh-space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sigeh-space-2);
+}
+
+.shell__arch-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.shell__arch-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.shell__collapse-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--sigeh-text-on-dark);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--sigeh-radius-sm);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+
+  @include m.respond-below(m.$breakpoint-lg) {
+    display: none;
+  }
+}
+
+.shell__header-left,
+.shell__header-right,
+.shell__profile {
+  display: flex;
+  align-items: center;
+  gap: var(--sigeh-space-3);
+}
+
+.shell__hamburger {
+  display: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: var(--sigeh-radius-md);
+  border: 1px solid var(--sigeh-border-strong);
+  background: var(--sigeh-surface-card);
+  cursor: pointer;
+
+  @include m.respond-below(m.$breakpoint-lg) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.shell__header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sigeh-primary-950);
+}
+
+.shell__header-subtitle,
+.shell__profile-scope {
+  font-size: 0.75rem;
+  color: var(--sigeh-text-muted);
+}
+
+.shell__demo-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--sigeh-radius-full);
+  background: var(--sigeh-status-demo-bg);
+  color: var(--sigeh-status-demo-text);
+  border: 1px solid var(--sigeh-status-demo-border);
+}
+
+.shell__profile-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--sigeh-primary-800);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shell__profile-meta {
+  display: flex;
+  flex-direction: column;
+  @include m.respond-below(m.$breakpoint-sm) {
+    display: none;
+  }
+}
+
+.shell__profile-role {
+  font-size: 0.8rem;
+  font-weight: 600;
+}

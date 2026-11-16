@@ -1,0 +1,112 @@
+// ============================================================================
+// SIGE-H — Layout Institucional (Shell, Sidebar y Encabezado Responsivo)
+// ============================================================================
+@use 'mixins' as m;
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--sigeh-surface-bg);
+}
+
+.shell__backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+  z-index: 40;
+}
+
+.shell__sidebar {
+  width: var(--sigeh-sidebar-width);
+  background-color: var(--sigeh-primary-950);
+  color: var(--sigeh-text-on-dark);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  transition: width 0.2s ease, transform 0.25s ease;
+  z-index: 50;
+
+  @include m.respond-below(m.$breakpoint-lg) {
+    position: fixed;
+    inset: 0 auto 0 0;
+    transform: translateX(-100%);
+  }
+}
+
+.shell--sidebar-collapsed .shell__sidebar {
+  @include m.respond-above(m.$breakpoint-lg) {
+    width: var(--sigeh-sidebar-collapsed-width);
+  }
+}
+
+.shell--mobile-open .shell__sidebar {
+  @include m.respond-below(m.$breakpoint-lg) {
+    transform: translateX(0);
+  }
+}
+
+.shell__workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shell__header {
+  min-height: var(--sigeh-header-height);
+  background: var(--sigeh-surface-card);
+  border-bottom: 1px solid var(--sigeh-border-subtle);
+  padding: var(--sigeh-space-3) var(--sigeh-space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sigeh-space-4);
+  flex-wrap: wrap;
+}
+
+.shell__main {
+  flex: 1;
+  padding: var(--sigeh-space-6);
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+
+  @include m.respond-below(m.$breakpoint-md) {
+    padding: var(--sigeh-space-4);
+  }
+}
+
+.shell__footer {
+  padding: var(--sigeh-space-4) var(--sigeh-space-6);
+  border-top: 1px solid var(--sigeh-border-subtle);
+  background: var(--sigeh-surface-card);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sigeh-space-2);
+  font-size: 0.75rem;
+  color: var(--sigeh-text-muted);
+}
+
+.shell__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sigeh-space-3);
+  padding: var(--sigeh-space-4);
+  min-height: var(--sigeh-header-height);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.shell__brand-emblem {
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: var(--sigeh-radius-md);
+  background: linear-gradient(135deg, var(--sigeh-clinical-600), var(--sigeh-primary-600));
+  color: #fff;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}

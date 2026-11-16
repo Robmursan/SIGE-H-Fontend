@@ -1,0 +1,300 @@
+<section class="org-page" aria-label="Explorador de Organización Hospitalaria">
+  <app-demo-mode-banner
+    [datasetCode]="queryResult().snapshot?.metadata?.datasetCode ?? 'SIGEH-DEMO-F2-ORG-2026'"
+    [activeState]="queryResult().state"
+    (stateChange)="setSimulatedState($event)"
+  />
+
+  <!-- Barra de Control y Selector de Hospital -->
+  <header class="sigeh-panel org-page__header" data-testid="organization-toolbar">
+    <div class="org-page__top-row">
+      <div>
+        <div class="org-page__eyebrow">MÓDULO F2 / F3-B · ESTRUCTURA Y JERARQUÍA INSTITUCIONAL</div>
+        <h2 class="org-page__title">Organización Hospitalaria: Hospitales, Divisiones y Servicios</h2>
+        <p class="org-page__subtitle">
+          Consulta jerárquica de unidades hospitalarias, divisiones clínicas, servicios y responsables de supervisión.
+        </p>
+      </div>
+
+      <!-- Selector de Hospital -->
+      @if (queryResult().snapshot; as snap) {
+        <div class="org-page__hosp-selector">
+          <label for="hospital-selector" class="org-page__field-label">Hospital Activo:</label>
+          <select
+            id="hospital-selector"
+            class="org-page__select org-page__select--hospital"
+            [ngModel]="selectedHospitalId()"
+            (ngModelChange)="selectHospital($event)"
+            data-testid="select-hospital"
+          >
+            @for (hosp of snap.hospitals; track hosp.hospitalId) {
+              <option [value]="hosp.hospitalId">
+                {{ hosp.hospitalCode }} — {{ hosp.hospitalName }}
+              </option>
+            }
+          </select>
+        </div>
+      }
+    </div>
+
+    <!-- Tarjeta Resumen del Hospital Seleccionado -->
+    @if (queryResult().snapshot?.selectedHospital; as hosp) {
+      <div class="org-page__hosp-banner" data-testid="selected-hospital-card">
+        <div class="org-page__hosp-main">
+          <span class="org-page__hosp-code">{{ hosp.hospitalCode }}</span>
+          <strong>{{ hosp.hospitalName }}</strong>
+          <span class="text-muted">({{ hosp.levelCode }} · {{ hosp.regionDemo }})</span>
+        </div>
+        <div class="org-page__hosp-metrics">
+          <span>Dirección Enf.: <strong>{{ hosp.nursingDirectorDemo }}</strong></span>
+          <span>Divisiones: <strong>{{ hosp.divisionsCount }}</strong></span>
+          <span>Servicios: <strong>{{ hosp.servicesCount }}</strong></span>
+          <span>
+            Plantilla Activa:
+            <strong>{{
+              hosp.activeStaffTotal !== null ? hosp.activeStaffTotal : 'No disponible (v1)'
+            }}</strong>
+          </span>
+        </div>
+      </div>
+    }
+
+    <!-- Filtros por División, Búsqueda y Semáforo -->
+    <div class="org-page__filters">
+      @if (queryResult().snapshot; as snap) {
+        <div class="org-page__div-pills" role="group" aria-label="Filtrar por división">
+          <button
+            type="button"
+            class="org-page__pill"
+            [class.org-page__pill--active]="selectedDivisionId() === 'ALL'"
+            data-testid="filter-division-ALL"
+            (click)="selectDivision('ALL')"
+          >
+            Todas las Divisiones ({{ snap.divisions.length }})
+          </button>
+          @for (div of snap.divisions; track div.divisionId) {
+            <button
+              type="button"
+              class="org-page__pill"
+              [class.org-page__pill--active]="selectedDivisionId() === div.divisionId"
+              [attr.data-testid]="'filter-division-' + div.divisionId"
+              (click)="selectDivision(div.divisionId)"
+            >
+              {{ div.divisionCode }} · {{ div.divisionName }}
+            </button>
+          }
+        </div>
+      }
+
+      <div class="org-page__search-group">
+        <label for="org-search-input" class="sr-only">Buscar servicio o responsable</label>
+        <input
+          id="org-search-input"
+          type="search"
+          class="org-page__input"
+          placeholder="Buscar por servicio, clave o responsable..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          data-testid="input-org-search"
+        />
+
+        <label for="org-status-select" class="sr-only">Filtrar por estado</label>
+        <select
+          id="org-status-select"
+          class="org-page__select"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="onStatusChange($event)"
+          data-testid="select-org-status"
+        >
+          <option value="ALL">Todos los estados</option>
+          <option value="optimal">Óptimo</option>
+          <option value="warning">Atención Preventiva</option>
+          <option value="critical">Prioridad Crítica</option>
+        </select>
+
+        <button
+          type="button"
+          class="sigeh-btn sigeh-btn--outline"
+          data-testid="btn-org-reset"
+          (click)="resetFilters()"
+        >
+          Restablecer
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Estados de Carga, Vacío, Error y Acceso Denegado -->
+  @if (queryResult().state !== 'ready') {
+    <app-ui-state-panel
+      [state]="nonReadyState()"
+      [errorDetails]="queryResult().error"
+      (retryRequested)="setSimulatedState('ready')"
+      (resetRequested)="resetFilters()"
+      (restoreAccessRequested)="setSimulatedState('ready')"
+    />
+  }
+
+  <!-- Explorador Maestro-Detalle de Divisiones, Servicios y Responsables -->
+  @if (queryResult().state === 'ready' && queryResult().snapshot; as snap) {
+    <div class="org-page__workspace" data-testid="organization-workspace">
+      <!-- Columna Izquierda: Catálogo Jerárquico de Servicios -->
+      <section class="sigeh-panel" aria-labelledby="heading-org-services">
+        <div class="sigeh-panel__header">
+          <div>
+            <h3 id="heading-org-services" class="sigeh-panel__title">
+              Servicios Hospitalarios Adscritos
+            </h3>
+            <p class="sigeh-panel__subtitle">
+              Seleccione un servicio para inspeccionar su capacidad, turnos y responsables.
+            </p>
+          </div>
+          <app-status-badge
+            variant="info"
+            [customLabel]="snap.services.length + ' servicios listados'"
+          />
+        </div>
+
+        <div class="sigeh-table-wrap">
+          <table class="sigeh-table" data-testid="org-services-table">
+            <thead>
+              <tr>
+                <th scope="col">Clave / Servicio</th>
+                <th scope="col">División</th>
+                <th scope="col" class="text-right">Plantilla</th>
+                <th scope="col">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (srv of snap.services; track srv.serviceId) {
+                <tr
+                  class="org-page__row"
+                  [class.org-page__row--selected]="snap.selectedService?.serviceId === srv.serviceId"
+                  [attr.data-testid]="'org-service-row-' + srv.serviceId"
+                  (click)="selectService(srv.serviceId)"
+                >
+                  <td>
+                    <span class="org-page__code-tag">{{ srv.serviceCode }}</span>
+                    <strong class="org-page__srv-name">{{ srv.serviceName }}</strong>
+                    <span class="text-muted">{{ srv.physicalLocation }}</span>
+                  </td>
+                  <td>
+                    <span class="org-page__div-name">{{ srv.divisionName }}</span>
+                  </td>
+                  <td class="text-right font-mono">
+                    @if (srv.activeStaffCount !== null && srv.authorizedPositions !== null) {
+                      <strong>{{ srv.activeStaffCount }}</strong> / {{ srv.authorizedPositions }}
+                    } @else {
+                      <span class="text-muted">No disponible (v1)</span>
+                    }
+                  </td>
+                  <td>
+                    <app-status-badge [variant]="srv.operationalStatus" />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Columna Derecha: Ficha de Detalle de Servicio y Responsables -->
+      @if (snap.selectedService; as detail) {
+        <aside
+          class="sigeh-panel org-page__detail"
+          aria-labelledby="heading-service-detail"
+          data-testid="service-detail-panel"
+        >
+          <div class="sigeh-panel__header">
+            <div>
+              <span class="org-page__code-tag">{{ detail.serviceCode }}</span>
+              <h3 id="heading-service-detail" class="sigeh-panel__title">
+                {{ detail.serviceName }}
+              </h3>
+              <p class="sigeh-panel__subtitle">{{ detail.divisionName }}</p>
+            </div>
+            <app-status-badge [variant]="detail.operationalStatus" />
+          </div>
+
+          <dl class="org-page__meta-grid">
+            <div class="org-page__meta-box">
+              <dt>Ubicación Física</dt>
+              <dd data-testid="detail-physical-location">{{ detail.physicalLocation }}</dd>
+            </div>
+            <div class="org-page__meta-box">
+              <dt>Modalidad Asistencial</dt>
+              <dd>{{ detail.careModality }}</dd>
+            </div>
+            <div class="org-page__meta-box">
+              <dt>Plazas Autorizadas</dt>
+              <dd class="font-mono">
+                {{
+                  detail.authorizedPositions !== null
+                    ? detail.authorizedPositions + ' plazas'
+                    : 'Información no disponible (v1)'
+                }}
+              </dd>
+            </div>
+            <div class="org-page__meta-box">
+              <dt>Personal Activo Adscrito</dt>
+              <dd class="font-mono">
+                {{
+                  detail.activeStaffCount !== null
+                    ? detail.activeStaffCount + ' enfermeras(os)'
+                    : 'Información no disponible (v1)'
+                }}
+              </dd>
+            </div>
+          </dl>
+
+          <div class="org-page__shifts-block">
+            <h4 class="org-page__subhead">Turnos y Esquemas Habilitados en el Servicio</h4>
+            @if (detail.enabledShifts.length > 0) {
+              <div class="org-page__shift-badges" data-testid="service-shifts-list">
+                @for (sh of detail.enabledShifts; track sh) {
+                  <span class="org-page__shift-chip">{{ sh }}</span>
+                }
+              </div>
+            } @else {
+              <p class="org-page__unavailable" data-testid="shifts-unavailable-notice">
+                Información de turnos no disponible en proyección OpenAPI v1 (solo identificadores y estado activo).
+              </p>
+            }
+          </div>
+
+          <div class="org-page__notes-block">
+            <h4 class="org-page__subhead">Nota Operativa de Supervisión</h4>
+            <p class="org-page__note-text">{{ detail.operationalNotes }}</p>
+          </div>
+
+          <div class="org-page__resp-block">
+            <h4 class="org-page__subhead">
+              Responsables Operativos y Jefatura ({{ detail.responsibles.length }})
+            </h4>
+            @if (detail.responsibles.length > 0) {
+              <ul class="org-page__resp-list" data-testid="service-responsibles-list">
+                @for (resp of detail.responsibles; track resp.employeeCode) {
+                  <li class="org-page__resp-card">
+                    <div class="org-page__resp-top">
+                      <span class="org-page__resp-role">{{ resp.roleTitle }}</span>
+                      <span class="org-page__code-tag">{{ resp.employeeCode }}</span>
+                    </div>
+                    <strong class="org-page__resp-name">{{ resp.syntheticName }}</strong>
+                    <div class="org-page__resp-meta">
+                      <span>Ámbito: {{ resp.shiftScope }}</span>
+                      <span>Contacto Demo: {{ resp.extensionDemo }}</span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="org-page__unavailable" data-testid="responsibles-unavailable-notice">
+                Información de responsables no disponible en proyección OpenAPI v1 (pendiente de privilegios SQL y matriz de facultades).
+              </p>
+            }
+          </div>
+        </aside>
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,143 @@
+<div
+  class="shell"
+  [class.shell--sidebar-collapsed]="sidebarCollapsed()"
+  [class.shell--mobile-open]="mobileMenuOpen()"
+>
+  @if (mobileMenuOpen()) {
+    <div
+      class="shell__backdrop"
+      aria-hidden="true"
+      data-testid="mobile-backdrop"
+      (click)="closeMobileMenu()"
+    ></div>
+  }
+
+  <!-- Sidebar Institucional -->
+  <aside
+    class="shell__sidebar"
+    aria-label="Navegación institucional SIGE-H"
+    data-testid="institutional-sidebar"
+  >
+    <div class="shell__brand">
+      <div class="shell__brand-emblem" aria-hidden="true">SH</div>
+      @if (!sidebarCollapsed()) {
+        <div class="shell__brand-titles">
+          <span class="shell__brand-acronym">SIGE-H</span>
+          <span class="shell__brand-name">Gestión Ejecutiva de Enfermería</span>
+        </div>
+      }
+      <button
+        type="button"
+        class="shell__mobile-close"
+        aria-label="Cerrar menú lateral"
+        (click)="closeMobileMenu()"
+      >
+        ✕
+      </button>
+    </div>
+
+    @if (!sidebarCollapsed()) {
+      <div class="shell__unit-card">
+        <span class="shell__unit-tag">UNIDAD DEMOSTRACIÓN F1</span>
+        <strong class="shell__unit-title">Hospital Modelo Sintético</strong>
+        <span class="shell__unit-meta">División de Enfermería · Sin Datos Reales</span>
+      </div>
+    }
+
+    <nav class="shell__nav" aria-label="Módulos del sistema">
+      <ul class="shell__nav-list">
+        @for (item of navItems; track item.id) {
+          <li class="shell__nav-item">
+            <a
+              class="shell__nav-link"
+              [routerLink]="item.route"
+              [queryParams]="item.queryParams"
+              routerLinkActive="shell__nav-link--active"
+              [routerLinkActiveOptions]="{ exact: !item.queryParams }"
+              [attr.data-testid]="item.id"
+              (click)="closeMobileMenu()"
+            >
+              <span class="shell__nav-indicator" aria-hidden="true"></span>
+              <div class="shell__nav-text">
+                <span class="shell__nav-label">{{ item.label }}</span>
+                @if (!sidebarCollapsed()) {
+                  <span class="shell__nav-subtitle">{{ item.subtitle }}</span>
+                }
+              </div>
+              @if (item.badge && !sidebarCollapsed()) {
+                <span class="shell__nav-badge">{{ item.badge }}</span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <div class="shell__sidebar-footer">
+      @if (!sidebarCollapsed()) {
+        <div class="shell__arch-status">
+          <span class="shell__arch-dot" aria-hidden="true"></span>
+          <span>Contratos HTTP OpenAPI Listos</span>
+        </div>
+      }
+      <button
+        type="button"
+        class="shell__collapse-btn"
+        [attr.aria-label]="sidebarCollapsed() ? 'Expandir barra lateral' : 'Contraer barra lateral'"
+        data-testid="btn-toggle-sidebar-collapse"
+        (click)="toggleSidebarCollapse()"
+      >
+        {{ sidebarCollapsed() ? '»' : '« Contraer panel' }}
+      </button>
+    </div>
+  </aside>
+
+  <!-- Contenedor Principal -->
+  <div class="shell__workspace">
+    <!-- Encabezado Institucional -->
+    <header class="shell__header" data-testid="institutional-header">
+      <div class="shell__header-left">
+        <button
+          type="button"
+          class="shell__hamburger"
+          aria-label="Abrir menú de navegación"
+          [attr.aria-expanded]="mobileMenuOpen()"
+          data-testid="btn-mobile-menu"
+          (click)="toggleMobileMenu()"
+        >
+          ☰
+        </button>
+        <div>
+          <h1 class="shell__header-title">Sistema Integral de Gestión de Enfermería Hospitalaria</h1>
+          <p class="shell__header-subtitle">
+            Supervisión Operativa y Jefatura de Turno · Fase {{ runtimeConfig.phase }}
+          </p>
+        </div>
+      </div>
+
+      <div class="shell__header-right">
+        <span class="shell__demo-pill" data-testid="header-demo-pill">
+          MODO DEMO SINTÉTICO
+        </span>
+        <div class="shell__profile" aria-label="Perfil activo simulado">
+          <div class="shell__profile-avatar" aria-hidden="true">JE</div>
+          <div class="shell__profile-meta">
+            <span class="shell__profile-role">Jefatura de Enfermería</span>
+            <span class="shell__profile-scope">Sesión Simulada (Sin Auth Real)</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenido de Página -->
+    <main class="shell__main" id="main-content">
+      <router-outlet />
+    </main>
+
+    <!-- Pie Institucional -->
+    <footer class="shell__footer">
+      <span>SIGE-H Frontend v{{ runtimeConfig.appVersion }} · Arquitectura Angular Standalone</span>
+      <span>Datos 100% sintéticos de demostración · Preparado para contratos OpenAPI</span>
+    </footer>
+  </div>
+</div>

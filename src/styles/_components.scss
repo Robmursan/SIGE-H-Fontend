@@ -1,0 +1,97 @@
+// ============================================================================
+// SIGE-H — Superficies, Paneles y Tablas Institucionales Compartidas
+// ============================================================================
+@use 'mixins' as m;
+
+.sigeh-panel {
+  @include m.institutional-card;
+  padding: var(--sigeh-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sigeh-space-4);
+
+  &--highlighted {
+    border-color: var(--sigeh-primary-600);
+    box-shadow: var(--sigeh-shadow-md);
+  }
+}
+
+.sigeh-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sigeh-space-2);
+}
+
+.sigeh-panel__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--sigeh-primary-950);
+}
+
+.sigeh-panel__subtitle {
+  font-size: 0.8rem;
+  color: var(--sigeh-text-muted);
+}
+
+.sigeh-table-wrap {
+  overflow-x: auto;
+}
+
+.sigeh-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th,
+  td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--sigeh-border-subtle);
+  }
+
+  th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--sigeh-text-muted);
+    background-color: var(--sigeh-surface-subtle);
+  }
+}
+
+.sigeh-progress-track {
+  flex: 1;
+  height: 7px;
+  background-color: var(--sigeh-surface-bg);
+  border-radius: var(--sigeh-radius-full);
+  overflow: hidden;
+}
+
+.sigeh-progress-fill {
+  height: 100%;
+  border-radius: var(--sigeh-radius-full);
+
+  &--optimal {
+    background-color: var(--sigeh-status-optimal-dot);
+  }
+  &--warning {
+    background-color: var(--sigeh-status-warning-dot);
+  }
+  &--critical {
+    background-color: var(--sigeh-status-critical-dot);
+  }
+}
+
+.text-right {
+  text-align: right;
+}
+
+.font-mono {
+  font-family: var(--sigeh-font-mono);
+}
+
+.text-muted {
+  color: var(--sigeh-text-muted);
+}

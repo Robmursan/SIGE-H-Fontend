@@ -1,0 +1,196 @@
+@use '../../../styles/mixins' as m;
+
+.sched-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sigeh-space-5);
+}
+
+.sched-page__top,
+.sched-page__scheme-top,
+.sched-page__alert-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sigeh-space-2);
+}
+
+.sched-page__eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--sigeh-clinical-700);
+}
+
+.sched-page__title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--sigeh-primary-950);
+}
+
+.sched-page__subtitle,
+.sched-page__scheme-desc {
+  font-size: 0.84rem;
+  color: var(--sigeh-text-secondary);
+}
+
+.sched-page__week-pill,
+.sched-page__scheme-badge {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--sigeh-radius-full);
+  background: var(--sigeh-primary-50);
+  color: var(--sigeh-primary-900);
+  border: 1px solid var(--sigeh-primary-100);
+}
+
+.sched-page__filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: var(--sigeh-space-3);
+  align-items: end;
+  padding-top: var(--sigeh-space-3);
+  border-top: 1px solid var(--sigeh-border-subtle);
+}
+
+.sched-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sigeh-text-secondary);
+  }
+}
+
+.sched-page__input,
+.sched-page__select {
+  padding: 0.45rem 0.7rem;
+  font-size: 0.82rem;
+  border: 1px solid var(--sigeh-border-strong);
+  border-radius: var(--sigeh-radius-md);
+  background: #fff;
+  width: 100%;
+}
+
+.sched-page__schemes-grid,
+.sched-page__alerts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sigeh-space-4);
+
+  @include m.respond-below(m.$breakpoint-lg) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.sched-page__scheme-count {
+  font-size: 0.78rem;
+  color: var(--sigeh-clinical-800);
+}
+
+.sched-page__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.sched-page__day-col,
+.sched-page__day-td {
+  text-align: center;
+  min-width: 98px;
+}
+
+.sched-page__day-name,
+.sched-page__emp-name {
+  display: block;
+}
+
+.sched-page__day-num {
+  font-size: 0.7rem;
+  color: var(--sigeh-text-muted);
+}
+
+.sched-page__emp-code {
+  font-family: var(--sigeh-font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--sigeh-radius-sm);
+  background: #fff;
+  border: 1px solid var(--sigeh-border-strong);
+}
+
+.sched-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.4rem;
+  border-radius: var(--sigeh-radius-sm);
+  border: 1px solid transparent;
+  font-size: 0.72rem;
+  line-height: 1.2;
+
+  &--DIURNO_MATUTINO {
+    background: var(--sigeh-status-info-bg);
+    color: var(--sigeh-status-info-text);
+    border-color: var(--sigeh-status-info-border);
+  }
+  &--DIURNO_VESPERTINO {
+    background: var(--sigeh-clinical-50);
+    color: var(--sigeh-clinical-800);
+    border-color: var(--sigeh-clinical-100);
+  }
+  &--GUARDIA_NOCTURNA {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+  }
+  &--JORNADA_ACUMULADA {
+    background: var(--sigeh-status-demo-bg);
+    color: var(--sigeh-status-demo-text);
+    border-color: var(--sigeh-status-demo-border);
+  }
+  &--DESCANSO_POST_GUARDIA {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #cbd5e1;
+  }
+  &--DESCANSO_PROGRAMADO {
+    background: #f8fafc;
+    color: #64748b;
+    border-color: #e2e8f0;
+  }
+  &--INCIDENCIA_AUSENCIA {
+    background: var(--sigeh-status-critical-bg);
+    color: var(--sigeh-status-critical-text);
+    border-color: var(--sigeh-status-critical-border);
+  }
+}
+
+.sched-cell__time,
+.sched-cell__note {
+  font-size: 0.65rem;
+  opacity: 0.9;
+}
+
+.sched-page__alert-card {
+  padding: var(--sigeh-space-4);
+  border-radius: var(--sigeh-radius-md);
+  background: var(--sigeh-surface-subtle);
+  border: 1px solid var(--sigeh-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sched-page__alert-footer {
+  font-size: 0.76rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--sigeh-border-subtle);
+}
