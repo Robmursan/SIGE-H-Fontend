@@ -134,16 +134,44 @@
             }
           },
           "400": {
-            "description": "Entrada inválida, sin datos sensibles"
+            "description": "Entrada inválida, sin datos sensibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Credencial o sesión inválida"
+            "description": "Credencial o sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Límite persistente de intentos o capacidad KDF"
+            "description": "Límite persistente de intentos o capacidad KDF",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IamRateLimitErrorDto"
+                }
+              }
+            }
           },
           "503": {
-            "description": "IAM deshabilitado o persistencia no disponible"
+            "description": "IAM deshabilitado o persistencia no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           }
         },
         "summary": "Autenticación local y sesión persistente",
@@ -179,16 +207,44 @@
             }
           },
           "400": {
-            "description": "Entrada inválida, sin datos sensibles"
+            "description": "Entrada inválida, sin datos sensibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Credencial o sesión inválida"
+            "description": "Credencial o sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Límite persistente"
+            "description": "Límite persistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IamRateLimitErrorDto"
+                }
+              }
+            }
           },
           "503": {
-            "description": "IAM deshabilitado o persistencia no disponible"
+            "description": "IAM deshabilitado o persistencia no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           }
         },
         "summary": "Rotar refresh opaco; replay revoca familia",
@@ -213,14 +269,25 @@
               }
             }
           },
-          "400": {
-            "description": "Entrada inválida, sin datos sensibles"
-          },
           "401": {
-            "description": "Credencial o sesión inválida"
+            "description": "Credencial o sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "503": {
-            "description": "IAM deshabilitado o persistencia no disponible"
+            "description": "IAM deshabilitado o persistencia no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -243,14 +310,35 @@
           "204": {
             "description": ""
           },
-          "400": {
-            "description": "Entrada inválida, sin datos sensibles"
-          },
           "401": {
-            "description": "Credencial o sesión inválida"
+            "description": "Credencial o sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sesión no disponible al revocar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "503": {
-            "description": "IAM deshabilitado o persistencia no disponible"
+            "description": "IAM deshabilitado o persistencia no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -283,14 +371,25 @@
               }
             }
           },
-          "400": {
-            "description": "Entrada inválida, sin datos sensibles"
-          },
           "401": {
-            "description": "Credencial o sesión inválida"
+            "description": "Credencial o sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "503": {
-            "description": "IAM deshabilitado o persistencia no disponible"
+            "description": "IAM deshabilitado o persistencia no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -314,6 +413,7 @@
             "required": true,
             "in": "path",
             "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -323,16 +423,44 @@
             "description": ""
           },
           "400": {
-            "description": "Entrada inválida, sin datos sensibles"
+            "description": "Entrada inválida, sin datos sensibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Credencial o sesión inválida"
+            "description": "Credencial o sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Sesión no disponible para el actor"
+            "description": "Sesión no disponible para el actor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "503": {
-            "description": "IAM deshabilitado o persistencia no disponible"
+            "description": "IAM deshabilitado o persistencia no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -361,24 +489,6 @@
             }
           },
           {
-            "name": "divisionId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "name": "servicioId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
             "name": "cursor",
             "required": false,
             "in": "query",
@@ -412,16 +522,44 @@
             }
           },
           "400": {
-            "description": "Filtros o cursor inválidos; hospitalId obligatorio en recursos hijos"
+            "description": "Filtros o cursor inválidos; hospitalId obligatorio en recursos hijos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Sesión inválida"
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Facultad o alcance insuficiente"
+            "description": "Facultad o alcance insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "503": {
-            "description": "IAM deshabilitado o persistencia no disponible"
+            "description": "IAM deshabilitado o persistencia no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -446,6 +584,7 @@
             "required": true,
             "in": "path",
             "schema": {
+              "format": "uuid",
               "type": "string"
             }
           },
@@ -453,6 +592,7 @@
             "name": "hospitalId",
             "required": false,
             "in": "query",
+            "description": "Redundante: si se envía, debe coincidir con hospitalId de ruta",
             "schema": {
               "format": "uuid",
               "type": "string"
@@ -460,15 +600,6 @@
           },
           {
             "name": "divisionId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "name": "servicioId",
             "required": false,
             "in": "query",
             "schema": {
@@ -510,16 +641,44 @@
             }
           },
           "400": {
-            "description": "Filtros o cursor inválidos; hospitalId obligatorio en recursos hijos"
+            "description": "Filtros o cursor inválidos; hospitalId obligatorio en recursos hijos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Sesión inválida"
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Facultad o alcance insuficiente"
+            "description": "Facultad o alcance insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "503": {
-            "description": "IAM deshabilitado o persistencia no disponible"
+            "description": "IAM deshabilitado o persistencia no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -541,7 +700,7 @@
         "parameters": [
           {
             "name": "hospitalId",
-            "required": false,
+            "required": true,
             "in": "query",
             "schema": {
               "format": "uuid",
@@ -600,16 +759,44 @@
             }
           },
           "400": {
-            "description": "Filtros o cursor inválidos; hospitalId obligatorio en recursos hijos"
+            "description": "Filtros o cursor inválidos; hospitalId obligatorio en recursos hijos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Sesión inválida"
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Facultad o alcance insuficiente"
+            "description": "Facultad o alcance insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           },
           "503": {
-            "description": "IAM deshabilitado o persistencia no disponible"
+            "description": "IAM deshabilitado o persistencia no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -623,6 +810,935 @@
         ],
         "x-sigeh-status": "qa-tested-disabled-by-default",
         "x-sigeh-projection": "identifiers-hierarchy-active-only"
+      }
+    },
+    "/api/v1/empleados": {
+      "get": {
+        "operationId": "listScopedStaff",
+        "parameters": [
+          {
+            "name": "hospitalId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "servicioId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "divisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "UUID exclusivo del último item; orden ascendente",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "fecha",
+            "required": true,
+            "in": "query",
+            "description": "Vigencia inclusiva a la fecha; no reconstruye estados contractuales históricos",
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeePageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ámbito, fecha, intervalo o paginación inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Facultad o ámbito insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lecturas deshabilitadas o no disponibles; requiere IAM_V2_ENABLED y L3A_READS_ENABLED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "padrón vigente por hospital/servicio, sin RUD",
+        "tags": [
+          "Lecturas hospitalarias"
+        ],
+        "x-sigeh-status": "prepared-disabled-awaiting-qa-functional-validation",
+        "x-sigeh-sql-privileges": "qa-column-select-verified-l3b1",
+        "x-sigeh-functional-validation": "not-currently-verified"
+      }
+    },
+    "/api/v1/empleados/{empleadoId}": {
+      "get": {
+        "operationId": "getScopedEmployee",
+        "parameters": [
+          {
+            "name": "empleadoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "hospitalId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "servicioId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "divisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "UUID exclusivo del último item; orden ascendente",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "fecha",
+            "required": true,
+            "in": "query",
+            "description": "Vigencia inclusiva a la fecha; no reconstruye estados contractuales históricos",
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetailDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ámbito, fecha, intervalo o paginación inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Facultad o ámbito insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Empleado no disponible, sea inexistente o fuera del padrón visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lecturas deshabilitadas o no disponibles; requiere IAM_V2_ENABLED y L3A_READS_ENABLED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "detalle mínimo y adscripciones visibles, no expediente completo",
+        "tags": [
+          "Lecturas hospitalarias"
+        ],
+        "x-sigeh-status": "prepared-disabled-awaiting-qa-functional-validation",
+        "x-sigeh-sql-privileges": "qa-column-select-verified-l3b1",
+        "x-sigeh-functional-validation": "not-currently-verified"
+      }
+    },
+    "/api/v1/contratos/{contratoId}/adscripciones": {
+      "get": {
+        "operationId": "listScopedAssignments",
+        "parameters": [
+          {
+            "name": "contratoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "hospitalId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "servicioId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "divisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "UUID exclusivo del último item; orden ascendente",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "fecha",
+            "required": true,
+            "in": "query",
+            "description": "Vigencia inclusiva a la fecha; no reconstruye estados contractuales históricos",
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página vacía para contrato inexistente o no visible; no revela su existencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignmentPageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ámbito, fecha, intervalo o paginación inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Facultad o ámbito insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lecturas deshabilitadas o no disponibles; requiere IAM_V2_ENABLED y L3A_READS_ENABLED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "adscripciones vigentes del contrato dentro del servicio autorizado",
+        "tags": [
+          "Lecturas hospitalarias"
+        ],
+        "x-sigeh-status": "prepared-disabled-awaiting-qa-functional-validation",
+        "x-sigeh-sql-privileges": "qa-column-select-verified-l3b1",
+        "x-sigeh-functional-validation": "not-currently-verified"
+      }
+    },
+    "/api/v1/programaciones": {
+      "get": {
+        "operationId": "listScopedWeeklyProgramming",
+        "parameters": [
+          {
+            "name": "hospitalId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "servicioId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "divisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "desde",
+            "required": true,
+            "in": "query",
+            "description": "Inicio inclusivo con zona/offset; ventana máxima 168 horas",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "required": true,
+            "in": "query",
+            "description": "Fin exclusivo con zona/offset",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchedulePageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ámbito, fecha, intervalo o paginación inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Facultad o ámbito insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lecturas deshabilitadas o no disponibles; requiere IAM_V2_ENABLED y L3A_READS_ENABLED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "programación por servicio, ventana de hasta 168 horas",
+        "tags": [
+          "Lecturas hospitalarias"
+        ],
+        "x-sigeh-status": "prepared-disabled-awaiting-qa-functional-validation",
+        "x-sigeh-sql-privileges": "qa-column-select-verified-l3b1",
+        "x-sigeh-functional-validation": "not-currently-verified"
+      }
+    },
+    "/api/v1/pases-lista": {
+      "get": {
+        "operationId": "listScopedAttendanceRoster",
+        "parameters": [
+          {
+            "name": "hospitalId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "servicioId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fecha",
+            "required": true,
+            "in": "query",
+            "description": "Fecha local de inicio de jornada, zona del hospital",
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "name": "horarioId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaseListaPageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Deshabilitado por defecto o resultado transaccional incierto; reintentar con la misma clave",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Jornadas y asistencia operativa por fecha local; sin clasificación de incidencias",
+        "tags": [
+          "Asistencia operativa"
+        ],
+        "x-sigeh-status": "local-mock-tested-disabled-awaiting-ephemeral-validation",
+        "x-sigeh-sql-privileges": "not-authorized-awaiting-ephemeral-package",
+        "x-sigeh-functional-validation": "local-mocks-only-no-postgresql-execution"
+      }
+    },
+    "/api/v1/programaciones/{programacionId}/asistencia": {
+      "put": {
+        "operationId": "captureInitialAttendance",
+        "parameters": [
+          {
+            "name": "programacionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "UUID v4 estable para actor+jornada; conservar tras timeout"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapturarAsistenciaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaptureReceiptDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Registro existente, clave con contenido distinto, jornada no elegible o cierre existente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Deshabilitado por defecto o resultado transaccional incierto; reintentar con la misma clave",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Primera captura online; ASISTENCIA_CAPTURAR y ámbito vigente; no valida ni crea incidencias",
+        "tags": [
+          "Asistencia operativa"
+        ],
+        "x-sigeh-status": "local-mock-tested-disabled-awaiting-ephemeral-validation",
+        "x-sigeh-sql-privileges": "not-authorized-awaiting-ephemeral-package",
+        "x-sigeh-functional-validation": "local-mocks-only-no-postgresql-execution"
+      }
+    },
+    "/api/v1/tableros/coordinacion": {
+      "get": {
+        "operationId": "getScopedProgrammingIndicators",
+        "parameters": [
+          {
+            "name": "hospitalId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "servicioId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "divisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "desde",
+            "required": true,
+            "in": "query",
+            "description": "Inicio inclusivo con zona/offset; ventana máxima 168 horas",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "required": true,
+            "in": "query",
+            "description": "Fin exclusivo con zona/offset",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammingDashboardDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ámbito, fecha, intervalo o paginación inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Facultad o ámbito insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Lecturas deshabilitadas o no disponibles; requiere IAM_V2_ENABLED y L3A_READS_ENABLED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadHttpErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "indicadores de programación por servicio, no asistencia/cobertura",
+        "tags": [
+          "Lecturas hospitalarias"
+        ],
+        "x-sigeh-status": "prepared-disabled-awaiting-qa-functional-validation",
+        "x-sigeh-sql-privileges": "qa-column-select-verified-l3b1",
+        "x-sigeh-functional-validation": "not-currently-verified"
       }
     },
     "/api/v1/meta/version": {
@@ -837,6 +1953,38 @@
           "timestamp"
         ]
       },
+      "ReadHttpErrorDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "description": "Código HTTP de la respuesta"
+          },
+          "message": {
+            "description": "Texto de la excepción o lista de errores de ValidationPipe; no es HTML",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "error": {
+            "type": "string",
+            "description": "Etiqueta HTTP de Nest, por ejemplo Unauthorized o Not Found"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
       "LoginDto": {
         "type": "object",
         "properties": {
@@ -886,6 +2034,24 @@
           "tokenType",
           "expiresIn",
           "sessionId"
+        ]
+      },
+      "IamRateLimitErrorDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "enum": [
+              429
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message"
         ]
       },
       "RefreshDto": {
@@ -1071,6 +2237,568 @@
           "order"
         ]
       },
+      "EmployeeReadDto": {
+        "type": "object",
+        "properties": {
+          "empleadoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombres": {
+            "type": "string"
+          },
+          "primerApellido": {
+            "type": "string"
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "empleadoId",
+          "nombres",
+          "primerApellido",
+          "activo"
+        ]
+      },
+      "EmployeePageDto": {
+        "type": "object",
+        "properties": {
+          "nextCursor": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "id:asc"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmployeeReadDto"
+            }
+          }
+        },
+        "required": [
+          "nextCursor",
+          "limit",
+          "order",
+          "items"
+        ]
+      },
+      "AssignmentReadDto": {
+        "type": "object",
+        "properties": {
+          "adscripcionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contratoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "servicioId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clase": {
+            "type": "string",
+            "enum": [
+              "NOMINAL",
+              "OPERATIVA"
+            ]
+          },
+          "inicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "fin": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        },
+        "required": [
+          "adscripcionId",
+          "contratoId",
+          "servicioId",
+          "clase",
+          "inicio",
+          "fin"
+        ]
+      },
+      "AssignmentPageDto": {
+        "type": "object",
+        "properties": {
+          "nextCursor": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "id:asc"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssignmentReadDto"
+            }
+          }
+        },
+        "required": [
+          "nextCursor",
+          "limit",
+          "order",
+          "items"
+        ]
+      },
+      "EmployeeDetailDto": {
+        "type": "object",
+        "properties": {
+          "empleado": {
+            "$ref": "#/components/schemas/EmployeeReadDto"
+          },
+          "adscripciones": {
+            "description": "Solo adscripciones vigentes y visibles del servicio solicitado; cursor sobre adscripcionId",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentPageDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "empleado",
+          "adscripciones"
+        ]
+      },
+      "ScheduleReadDto": {
+        "type": "object",
+        "properties": {
+          "programacionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "empleadoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "servicioId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "horarioId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "turnoCodigo": {
+            "type": "string",
+            "nullable": true
+          },
+          "inicioProgramado": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finProgramado": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PROGRAMADA",
+              "CANCELADA",
+              "SUSTITUIDA",
+              "CERRADA"
+            ]
+          }
+        },
+        "required": [
+          "programacionId",
+          "empleadoId",
+          "servicioId",
+          "horarioId",
+          "turnoCodigo",
+          "inicioProgramado",
+          "finProgramado",
+          "estado"
+        ]
+      },
+      "SchedulePageDto": {
+        "type": "object",
+        "properties": {
+          "nextCursor": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "id:asc"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleReadDto"
+            }
+          }
+        },
+        "required": [
+          "nextCursor",
+          "limit",
+          "order",
+          "items"
+        ]
+      },
+      "AttendanceEmployeeDto": {
+        "type": "object",
+        "properties": {
+          "empleadoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombres": {
+            "type": "string"
+          },
+          "primerApellido": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "empleadoId",
+          "nombres",
+          "primerApellido"
+        ]
+      },
+      "LastCaptureDto": {
+        "type": "object",
+        "properties": {
+          "eventoId": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registradoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "eventoId",
+          "actorId",
+          "registradoEn"
+        ]
+      },
+      "PaseListaItemDto": {
+        "type": "object",
+        "properties": {
+          "programacionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "empleado": {
+            "$ref": "#/components/schemas/AttendanceEmployeeDto"
+          },
+          "horarioId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "turnoCodigo": {
+            "type": "string",
+            "nullable": true
+          },
+          "inicioProgramado": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finProgramado": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "estadoProgramacion": {
+            "type": "string",
+            "enum": [
+              "PROGRAMADA",
+              "CANCELADA",
+              "SUSTITUIDA",
+              "CERRADA"
+            ]
+          },
+          "capturada": {
+            "type": "boolean"
+          },
+          "asistenciaId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "estadoOperativo": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "PRESENTE",
+              "AUSENTE",
+              "PARCIAL",
+              "NO_EXIGIBLE"
+            ]
+          },
+          "validacionAdministrativa": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "VALIDADA",
+              "OBSERVADA"
+            ],
+            "nullable": true
+          },
+          "revision": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "ultimaCaptura": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LastCaptureDto"
+              }
+            ]
+          },
+          "capturable": {
+            "type": "boolean"
+          },
+          "motivoNoCapturable": {
+            "type": "string",
+            "enum": [
+              "YA_REGISTRADA",
+              "FUERA_VENTANA",
+              "PROGRAMACION_NO_CAPTURABLE",
+              "CONTRATO_NO_VIGENTE",
+              "CIERRE_EXISTENTE",
+              "SIN_FACULTAD_CAPTURA"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "programacionId",
+          "empleado",
+          "horarioId",
+          "turnoCodigo",
+          "inicioProgramado",
+          "finProgramado",
+          "estadoProgramacion",
+          "capturada",
+          "asistenciaId",
+          "estadoOperativo",
+          "validacionAdministrativa",
+          "revision",
+          "ultimaCaptura",
+          "capturable",
+          "motivoNoCapturable"
+        ]
+      },
+      "PaseListaPageDto": {
+        "type": "object",
+        "properties": {
+          "hospitalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "servicioId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date"
+          },
+          "zonaHoraria": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaseListaItemDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "id:asc"
+            ]
+          }
+        },
+        "required": [
+          "hospitalId",
+          "servicioId",
+          "fecha",
+          "zonaHoraria",
+          "items",
+          "nextCursor",
+          "limit",
+          "order"
+        ]
+      },
+      "CapturarAsistenciaDto": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PRESENTE",
+              "AUSENTE",
+              "PARCIAL"
+            ]
+          },
+          "expectedRevision": {
+            "type": "string",
+            "enum": [
+              "0"
+            ],
+            "description": "Solo primera captura"
+          }
+        },
+        "required": [
+          "estado",
+          "expectedRevision"
+        ]
+      },
+      "CaptureReceiptDto": {
+        "type": "object",
+        "properties": {
+          "programacionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "asistenciaId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventoId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "BIGINT decimal, no convertir a Number"
+          },
+          "estadoOperativo": {
+            "type": "string",
+            "enum": [
+              "PRESENTE",
+              "AUSENTE",
+              "PARCIAL"
+            ]
+          },
+          "validacionAdministrativa": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE"
+            ]
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registradoEn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revision": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          }
+        },
+        "required": [
+          "programacionId",
+          "asistenciaId",
+          "eventoId",
+          "estadoOperativo",
+          "validacionAdministrativa",
+          "actorId",
+          "registradoEn",
+          "revision"
+        ]
+      },
+      "ProgrammingDashboardDto": {
+        "type": "object",
+        "properties": {
+          "base": {
+            "type": "string",
+            "enum": [
+              "PROGRAMACION_NO_ASISTENCIA_NI_COBERTURA"
+            ]
+          },
+          "jornadas": {
+            "type": "integer"
+          },
+          "empleadosProgramados": {
+            "type": "integer"
+          },
+          "programadas": {
+            "type": "integer"
+          },
+          "canceladas": {
+            "type": "integer"
+          },
+          "sustituidas": {
+            "type": "integer"
+          },
+          "cerradas": {
+            "type": "integer"
+          },
+          "horasPersonaProgramadas": {
+            "type": "number",
+            "description": "Horas-persona PROGRAMADA/CERRADA recortadas a la ventana, no horas de cobertura efectiva"
+          }
+        },
+        "required": [
+          "base",
+          "jornadas",
+          "empleadosProgramados",
+          "programadas",
+          "canceladas",
+          "sustituidas",
+          "cerradas",
+          "horasPersonaProgramadas"
+        ]
+      },
       "ApiVersionResponseDto": {
         "type": "object",
         "properties": {
@@ -1092,19 +2820,23 @@
       }
     }
   },
-  "x-sigeh-deployment": "IAM and ORG disabled by default; enabled only in temporary QA tests",
+  "x-sigeh-deployment": "ASISTENCIA, IAM, ORG and L3A reads disabled by default; temporary QA activation only; synthetic users cleaned; column SELECT grants verified in L3B-1",
   "x-sigeh-pending-resources": [
+    {
+      "resource": "asistencia operativa",
+      "reason": "Ephemeral environment, SQL privileges and real PostgreSQL write validation await authorization"
+    },
     {
       "resource": "descriptive organization fields",
       "reason": "SQL column privileges not authorized"
     },
     {
       "resource": "personal and adscripciones",
-      "reason": "SQL SELECT privileges and read-faculty matrix pending"
+      "reason": "Read facultades absent in QA; synthetic functional validation blocked"
     },
     {
       "resource": "programacion and operational dashboard",
-      "reason": "SQL SELECT privileges and read-faculty matrix pending"
+      "reason": "Read facultades absent in QA; synthetic functional validation blocked"
     },
     {
       "resource": "incidencias, cobertura, disponibilidad",

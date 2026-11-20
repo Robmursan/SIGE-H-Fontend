@@ -71,9 +71,18 @@ describe('HTTP Error Normalizer (F3-A: 401, 403, 404, 409, 500)', () => {
     expect(err400.message).toContain('hospitalId must be a UUID');
 
     const err429 = normalizeOpenApiHttpError(
-      new HttpErrorResponse({ status: 429, statusText: 'Too Many Requests' }),
+      new HttpErrorResponse({
+        status: 429,
+        statusText: 'Too Many Requests',
+        error: {
+          statusCode: 429,
+          message: 'Demasiados intentos fallidos; espera antes de reintentar.',
+        },
+      }),
     );
     expect(err429.code).toBe('RATE_LIMIT_EXCEEDED');
+    expect(err429.isIamRateLimitFormat).toBe(true);
+    expect(err429.message).toContain('Demasiados intentos fallidos');
 
     const err503 = normalizeOpenApiHttpError(
       new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' }),

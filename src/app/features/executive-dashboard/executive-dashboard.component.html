@@ -1,290 +1,545 @@
 <section class="dashboard" aria-label="Tablero Ejecutivo de Enfermería">
-  <!-- Banner Institucional de Datos Sintéticos y Simulador de Estados -->
-  <app-demo-mode-banner
-    [datasetCode]="queryResult().snapshot?.metadata?.datasetCode ?? 'SIGEH-DEMO-F1-SYNTH-2026'"
-    [activeState]="queryResult().state"
-    (stateChange)="setSimulatedState($event)"
-  />
+  @if (!isRealOpenApiMode()) {
+    <!-- Banner Institucional de Datos Sintéticos y Simulador de Estados -->
+    <app-demo-mode-banner
+      [datasetCode]="queryResult().snapshot?.metadata?.datasetCode ?? 'SIGEH-DEMO-F1-SYNTH-2026'"
+      [activeState]="queryResult().state"
+      (stateChange)="setSimulatedState($event)"
+    />
+  }
 
-  <!-- Encabezado Operativo y Filtros de Supervisión -->
+  <!-- Encabezado Operativo, Selector de Origen (Opt-In) y Filtros -->
   <header class="dashboard__toolbar" data-testid="dashboard-toolbar">
     <div class="dashboard__title-group">
-      <div class="dashboard__eyebrow">CORTE OPERATIVO SIMULADO · JEFATURA DE DIVISIÓN</div>
-      <h2 class="dashboard__heading">Tablero Ejecutivo de Personal, Asistencia y Cobertura</h2>
+      <div class="dashboard__eyebrow">
+        {{
+          isRealOpenApiMode()
+            ? 'OPENAPI v1 (F4-D) · INDICADORES DE PROGRAMACIÓN POR SERVICIO'
+            : 'CORTE OPERATIVO SIMULADO · JEFATURA DE DIVISIÓN'
+        }}
+      </div>
+      <h2 class="dashboard__heading">
+        {{
+          isRealOpenApiMode()
+            ? 'Tablero de Coordinación de Programación (OpenAPI v1)'
+            : 'Tablero Ejecutivo de Personal, Asistencia y Cobertura'
+        }}
+      </h2>
       <p class="dashboard__subtext">
-        Monitoreo sintético para toma de decisiones de supervisión hospitalaria por turno y área clínica.
+        @if (isRealOpenApiMode()) {
+          Métricas reales de <code>GET /api/v1/tableros/coordinacion</code> (base:
+          <code>PROGRAMACION_NO_ASISTENCIA_NI_COBERTURA</code>).
+        } @else {
+          Monitoreo sintético para toma de decisiones de supervisión hospitalaria por turno y área clínica.
+        }
       </p>
     </div>
 
     <div class="dashboard__controls">
-      <!-- Selector de Turno -->
-      <div class="dashboard__shift-tabs" role="group" aria-label="Filtrar por turno hospitalario">
-        @for (opt of shiftOptions; track opt.value) {
-          <button
-            type="button"
-            class="dashboard__shift-btn"
-            [class.dashboard__shift-btn--active]="selectedShift() === opt.value"
-            [attr.data-testid]="'filter-shift-' + opt.value"
-            [attr.aria-pressed]="selectedShift() === opt.value"
-            (click)="setShift(opt.value)"
-          >
-            {{ opt.label }}
-          </button>
-        }
-      </div>
-
-      <!-- Búsqueda y Filtro por Semáforo -->
-      <div class="dashboard__search-row">
-        <div class="dashboard__input-wrap">
-          <label for="service-search-input" class="sr-only">Buscar servicio o incidencia</label>
-          <input
-            id="service-search-input"
-            type="search"
-            class="dashboard__input"
-            placeholder="Buscar servicio, torre o incidencia..."
-            [ngModel]="searchQuery()"
-            (ngModelChange)="onSearchChange($event)"
-            data-testid="input-service-search"
-          />
-        </div>
-
-        <div class="dashboard__select-wrap">
-          <label for="status-filter-select" class="sr-only">Estado operativo</label>
-          <select
-            id="status-filter-select"
-            class="dashboard__select"
-            [ngModel]="selectedStatus()"
-            (ngModelChange)="onStatusFilterChange($event)"
-            data-testid="select-status-filter"
-          >
-            <option value="ALL">Todos los niveles</option>
-            <option value="optimal">Óptimo</option>
-            <option value="warning">Atención Preventiva</option>
-            <option value="critical">Prioridad Crítica</option>
-          </select>
-        </div>
-
+      <div class="sigeh-mode-controls" role="group" aria-label="Origen de datos del tablero">
         <button
           type="button"
-          class="sigeh-btn sigeh-btn--outline"
-          data-testid="toolbar-reset-btn"
-          (click)="resetFilters()"
+          class="sigeh-btn"
+          [class.sigeh-btn--primary]="!isRealOpenApiMode()"
+          [class.sigeh-btn--outline]="isRealOpenApiMode()"
+          data-testid="btn-dashboard-mode-synthetic"
+          (click)="setDashboardDataSourceMode('SYNTHETIC_DEMO')"
         >
-          Limpiar filtros
+          Demo Sintético
+        </button>
+        <button
+          type="button"
+          class="sigeh-btn"
+          [class.sigeh-btn--primary]="isRealOpenApiMode()"
+          [class.sigeh-btn--outline]="!isRealOpenApiMode()"
+          data-testid="btn-dashboard-mode-openapi"
+          (click)="setDashboardDataSourceMode('OPENAPI_HTTP_READY')"
+        >
+          OpenAPI v1 (Opt-In)
         </button>
       </div>
+
+      @if (!isRealOpenApiMode()) {
+        <!-- Selector de Turno (Demo Sintético F1) -->
+        <div class="dashboard__shift-tabs" role="group" aria-label="Filtrar por turno hospitalario">
+          @for (opt of shiftOptions; track opt.value) {
+            <button
+              type="button"
+              class="dashboard__shift-btn"
+              [class.dashboard__shift-btn--active]="selectedShift() === opt.value"
+              [attr.data-testid]="'filter-shift-' + opt.value"
+              [attr.aria-pressed]="selectedShift() === opt.value"
+              (click)="setShift(opt.value)"
+            >
+              {{ opt.label }}
+            </button>
+          }
+        </div>
+
+        <!-- Búsqueda y Filtro por Semáforo -->
+        <div class="dashboard__search-row">
+          <div class="dashboard__input-wrap">
+            <label for="service-search-input" class="sr-only">Buscar servicio o incidencia</label>
+            <input
+              id="service-search-input"
+              type="search"
+              class="dashboard__input"
+              placeholder="Buscar servicio, torre o incidencia..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="onSearchChange($event)"
+              data-testid="input-service-search"
+            />
+          </div>
+
+          <div class="dashboard__select-wrap">
+            <label for="status-filter-select" class="sr-only">Estado operativo</label>
+            <select
+              id="status-filter-select"
+              class="dashboard__select"
+              [ngModel]="selectedStatus()"
+              (ngModelChange)="onStatusFilterChange($event)"
+              data-testid="select-status-filter"
+            >
+              <option value="ALL">Todos los niveles</option>
+              <option value="optimal">Óptimo</option>
+              <option value="warning">Atención Preventiva</option>
+              <option value="critical">Prioridad Crítica</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            class="sigeh-btn sigeh-btn--outline"
+            data-testid="toolbar-reset-btn"
+            (click)="resetFilters()"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      }
     </div>
   </header>
 
-  <!-- Manejo de Estados No-Ready (Carga, Vacío, Error, Acceso Denegado) -->
+  <!-- Panel de Filtros Contractuales en Modo Real OpenAPI v1 -->
+  @if (isRealOpenApiMode()) {
+    <section class="sigeh-panel" data-testid="dashboard-openapi-controls">
+      <div
+        class="sigeh-v1-notice sigeh-v1-notice--semantic"
+        role="note"
+        data-testid="dashboard-semantic-disclaimer"
+      >
+        <strong>Semántica contractual obligatoria (<code>PROGRAMACION_NO_ASISTENCIA_NI_COBERTURA</code>):</strong>
+        Todos los indicadores mostrados en modo real corresponden exclusivamente a <strong>programación laboral</strong>.
+        No representan asistencia efectiva, cobertura realizada ni incidencias verificadas.
+      </div>
+
+      @if (!authSession.isAuthenticated()) {
+        <div class="sigeh-v1-notice sigeh-v1-notice--warn" role="alert" data-testid="dashboard-iam-required">
+          Requiere sesión IAM V2 activa para obtener el ámbito hospital/servicio desde
+          <code>/api/v1/auth/me</code>.
+          <a routerLink="/login">Ir a Sesión IAM V2</a>
+        </div>
+      }
+
+      @if (!windowValidation().valid) {
+        <div class="sigeh-v1-notice sigeh-v1-notice--warn" role="alert" data-testid="dashboard-window-error">
+          {{ windowValidation().errorMessage }}
+        </div>
+      }
+
+      <div class="sigeh-v1-metrics-grid">
+        <div>
+          <label for="dash-auth-hospital" class="sigeh-v1-metric-label">Hospital autorizado</label>
+          <select
+            id="dash-auth-hospital"
+            class="dashboard__select"
+            [ngModel]="authSession.selectedHospitalId() ?? ''"
+            (ngModelChange)="onAuthorizedHospitalChange($event)"
+            [disabled]="authSession.authorizedHospitals().length === 0"
+            data-testid="select-dash-openapi-hospital"
+          >
+            @if (authSession.authorizedHospitals().length === 0) {
+              <option value="">Sin hospital autorizado</option>
+            }
+            @for (h of authSession.authorizedHospitals(); track h.hospitalId) {
+              <option [value]="h.hospitalId">{{ h.displayLabel }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label for="dash-auth-service" class="sigeh-v1-metric-label">Servicio autorizado</label>
+          <select
+            id="dash-auth-service"
+            class="dashboard__select"
+            [ngModel]="authSession.selectedServiceId() ?? ''"
+            (ngModelChange)="onAuthorizedServiceChange($event)"
+            [disabled]="authSession.authorizedServicesForSelectedHospital().length === 0"
+            data-testid="select-dash-openapi-service"
+          >
+            @if (authSession.authorizedServicesForSelectedHospital().length === 0) {
+              <option value="">Sin servicio explícito autorizado</option>
+            }
+            @for (s of authSession.authorizedServicesForSelectedHospital(); track s.servicioId) {
+              <option [value]="s.servicioId">{{ s.displayLabel }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label for="dash-desde-iso" class="sigeh-v1-metric-label">Desde (ISO-8601 con zona/offset)</label>
+          <input
+            id="dash-desde-iso"
+            type="text"
+            class="dashboard__input font-mono"
+            [ngModel]="desdeIso()"
+            (ngModelChange)="onWindowRangeChange($event, hastaIso())"
+            data-testid="input-dash-desde"
+          />
+        </div>
+
+        <div>
+          <label for="dash-hasta-iso" class="sigeh-v1-metric-label">Hasta (ISO-8601, máx. 168 h)</label>
+          <input
+            id="dash-hasta-iso"
+            type="text"
+            class="dashboard__input font-mono"
+            [ngModel]="hastaIso()"
+            (ngModelChange)="onWindowRangeChange(desdeIso(), $event)"
+            data-testid="input-dash-hasta"
+          />
+        </div>
+      </div>
+
+      <div class="sigeh-mode-controls" style="margin-top: 0.75rem">
+        <span class="text-muted">
+          @if (windowValidation().valid) {
+            Ventana válida: <strong>{{ windowValidation().durationHours }} h</strong> (máx. 168 h)
+          }
+        </span>
+        <button
+          type="button"
+          class="sigeh-btn sigeh-btn--outline"
+          data-testid="btn-dash-preset-24h"
+          (click)="applyWindowPreset(24)"
+        >
+          Ventana 24 h
+        </button>
+        <button
+          type="button"
+          class="sigeh-btn sigeh-btn--outline"
+          data-testid="btn-dash-preset-168h"
+          (click)="applyWindowPreset(168)"
+        >
+          Ventana 168 h
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- Manejo de Estados No-Ready (Carga, Vacío, Error, Acceso Denegado, 503) -->
   @if (queryResult().state !== 'ready') {
     <app-ui-state-panel
       [state]="nonReadyState()"
       [errorDetails]="queryResult().error"
-      (retryRequested)="setSimulatedState('ready')"
+      (retryRequested)="refreshDashboard()"
       (resetRequested)="resetFilters()"
       (restoreAccessRequested)="setSimulatedState('ready')"
     />
   }
 
-  <!-- Vista Principal Ready con Indicadores Ejecutivos -->
+  <!-- Vista Ready -->
   @if (queryResult().state === 'ready' && queryResult().snapshot; as snap) {
-    <!-- 1. Tarjetas KPI Ejecutivas (Personal, Asistencia, Incidencias, Cobertura) -->
-    <section
-      class="dashboard__kpi-grid"
-      aria-label="Indicadores clave de desempeño"
-      data-testid="kpi-cards-grid"
-    >
-      @for (metric of snap.kpis; track metric.id) {
-        <app-kpi-stat-card [metric]="metric" />
-      }
-    </section>
-
-    <!-- 2. Matriz de Cobertura por Servicio Hospitalario -->
-    <section
-      class="sigeh-panel"
-      [class.sigeh-panel--highlighted]="highlightedSection() === 'cobertura'"
-      aria-labelledby="heading-cobertura"
-      data-testid="section-service-coverage"
-    >
-      <div class="sigeh-panel__header">
-        <div>
-          <h3 id="heading-cobertura" class="sigeh-panel__title">
-            Cobertura de Enfermería por Servicio Clínico
-          </h3>
-          <p class="sigeh-panel__subtitle">
-            Comparativa de plantilla requerida vs. presente en turno (Datos Sintéticos de Demostración)
-          </p>
-        </div>
-        <app-status-badge
-          variant="info"
-          [customLabel]="snap.serviceCoverage.length + ' servicios en monitoreo'"
-        />
-      </div>
-
-      <div class="sigeh-table-wrap">
-        <table class="sigeh-table" data-testid="coverage-table">
-          <thead>
-            <tr>
-              <th scope="col">Servicio Hospitalario (Demo)</th>
-              <th scope="col">Turno</th>
-              <th scope="col" class="text-right">Requerido</th>
-              <th scope="col" class="text-right">Presente</th>
-              <th scope="col">Índice de Cobertura</th>
-              <th scope="col">Estado</th>
-              <th scope="col">Observación de Supervisión</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (srv of snap.serviceCoverage; track srv.serviceId) {
-              <tr [attr.data-testid]="'row-service-' + srv.serviceId">
-                <td>
-                  <strong class="dashboard__service-name">{{ srv.serviceName }}</strong>
-                  <span class="dashboard__service-wing">{{ srv.floorOrWing }}</span>
-                </td>
-                <td>
-                  <span class="dashboard__shift-tag">{{ srv.shift }}</span>
-                </td>
-                <td class="text-right font-mono">{{ srv.requiredStaff }}</td>
-                <td class="text-right font-mono">
-                  <strong>{{ srv.presentStaff }}</strong>
-                  <span class="text-muted"> / {{ srv.assignedStaff }}</span>
-                </td>
-                <td>
-                  <div class="dashboard__cov-cell">
-                    <span class="dashboard__cov-pct">{{ srv.coveragePercentage }}%</span>
-                    <div class="sigeh-progress-track">
-                      <div
-                        class="sigeh-progress-fill"
-                        [class]="'sigeh-progress-fill--' + srv.status"
-                        [style.width.%]="srv.coveragePercentage"
-                      ></div>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <app-status-badge [variant]="srv.status" />
-                </td>
-                <td class="dashboard__note-cell">{{ srv.supervisorNote }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- 3. Grilla Inferior: Asistencia por Categoría e Incidencias del Turno -->
-    <div class="dashboard__bottom-grid">
-      <!-- Panel de Asistencia y Fuerza de Trabajo -->
+    @if (isRealOpenApiMode() && snap.programmingIndicators; as ind) {
+      <!-- Indicadores Reales de Programación (GET /api/v1/tableros/coordinacion) -->
       <section
         class="sigeh-panel"
-        [class.sigeh-panel--highlighted]="highlightedSection() === 'asistencia'"
-        aria-labelledby="heading-asistencia"
-        data-testid="section-attendance-summary"
+        aria-labelledby="heading-coordination-v1"
+        data-testid="coordination-programming-panel"
       >
         <div class="sigeh-panel__header">
           <div>
-            <h3 id="heading-asistencia" class="sigeh-panel__title">
-              Balance de Asistencia y Categorías
+            <h3 id="heading-coordination-v1" class="sigeh-panel__title">
+              Indicadores de Programación del Servicio (GET /api/v1/tableros/coordinacion)
             </h3>
             <p class="sigeh-panel__subtitle">
-              Desglose de puntualidad, suplencias y disponibilidad por perfil
-            </p>
-          </div>
-        </div>
-
-        <div class="dashboard__mini-stats">
-          <div class="dashboard__mini-stat">
-            <span class="dashboard__mini-label">Puntualidad</span>
-            <strong class="dashboard__mini-value">{{ snap.attendance.punctualityPercentage }}%</strong>
-          </div>
-          <div class="dashboard__mini-stat">
-            <span class="dashboard__mini-label">Suplencias Activas</span>
-            <strong class="dashboard__mini-value">{{ snap.attendance.activeSubstitutions }}</strong>
-          </div>
-          <div class="dashboard__mini-stat">
-            <span class="dashboard__mini-label">Ausencias Justificadas</span>
-            <strong class="dashboard__mini-value">{{ snap.attendance.justifiedAbsences }}</strong>
-          </div>
-          <div class="dashboard__mini-stat">
-            <span class="dashboard__mini-label">Faltas / Retardos</span>
-            <strong class="dashboard__mini-value">
-              {{ snap.attendance.unjustifiedAbsences + snap.attendance.delayedCheckIns }}
-            </strong>
-          </div>
-        </div>
-
-        <div class="dashboard__category-list">
-          @for (cat of snap.attendance.categories; track cat.categoryId) {
-            <div class="dashboard__category-item">
-              <div class="dashboard__category-top">
-                <span class="dashboard__category-name">{{ cat.categoryLabel }}</span>
-                <span class="dashboard__category-counts">
-                  <strong>{{ cat.presentCount }}</strong> / {{ cat.scheduledCount }} ({{
-                    cat.availabilityPercentage
-                  }}%)
-                </span>
-              </div>
-              <div class="sigeh-progress-track">
-                <div
-                  class="sigeh-progress-fill"
-                  [class]="'sigeh-progress-fill--' + cat.status"
-                  [style.width.%]="cat.availabilityPercentage"
-                ></div>
-              </div>
-            </div>
-          }
-        </div>
-      </section>
-
-      <!-- Monitor de Incidencias Operativas -->
-      <section
-        class="sigeh-panel"
-        [class.sigeh-panel--highlighted]="highlightedSection() === 'incidencias'"
-        aria-labelledby="heading-incidencias"
-        data-testid="section-incidents-monitor"
-      >
-        <div class="sigeh-panel__header">
-          <div>
-            <h3 id="heading-incidencias" class="sigeh-panel__title">
-              Monitor de Incidencias del Turno
-            </h3>
-            <p class="sigeh-panel__subtitle">
-              Eventos operativos sintéticos reportados por supervisión de piso
+              Ventana: <code>{{ ind.desde }}</code> → <code>{{ ind.hasta }}</code> · Servicio:
+              <code>{{ ind.servicioId }}</code>
             </p>
           </div>
           <app-status-badge
-            [variant]="snap.incidents.length > 2 ? 'warning' : 'optimal'"
-            [customLabel]="snap.incidents.length + ' registradas'"
+            variant="info"
+            [customLabel]="'Base: ' + ind.base"
           />
         </div>
 
-        @if (snap.incidents.length === 0) {
-          <p class="dashboard__empty-inline">
-            No hay incidencias reportadas para el filtro actual.
+        <div class="sigeh-v1-metrics-grid" data-testid="coordination-metrics-grid">
+          <article class="sigeh-v1-metric-card" data-testid="metric-jornadas">
+            <span class="sigeh-v1-metric-label">Jornadas en Ventana</span>
+            <strong class="sigeh-v1-metric-value">{{ ind.jornadas }}</strong>
+            <span class="text-muted">Total de jornadas programadas</span>
+          </article>
+
+          <article class="sigeh-v1-metric-card" data-testid="metric-empleados-programados">
+            <span class="sigeh-v1-metric-label">Empleados Programados</span>
+            <strong class="sigeh-v1-metric-value">{{ ind.empleadosProgramados }}</strong>
+            <span class="text-muted">Personal con programación (no asistencia)</span>
+          </article>
+
+          <article class="sigeh-v1-metric-card" data-testid="metric-programadas">
+            <span class="sigeh-v1-metric-label">Estado PROGRAMADA</span>
+            <strong class="sigeh-v1-metric-value">{{ ind.programadas }}</strong>
+            <span class="text-muted">Jornadas vigentes programadas</span>
+          </article>
+
+          <article class="sigeh-v1-metric-card" data-testid="metric-cerradas">
+            <span class="sigeh-v1-metric-label">Estado CERRADA</span>
+            <strong class="sigeh-v1-metric-value">{{ ind.cerradas }}</strong>
+            <span class="text-muted">Jornadas cerradas en programación</span>
+          </article>
+
+          <article class="sigeh-v1-metric-card" data-testid="metric-sustituidas">
+            <span class="sigeh-v1-metric-label">Estado SUSTITUIDA</span>
+            <strong class="sigeh-v1-metric-value">{{ ind.sustituidas }}</strong>
+            <span class="text-muted">Jornadas marcadas como sustituidas</span>
+          </article>
+
+          <article class="sigeh-v1-metric-card" data-testid="metric-canceladas">
+            <span class="sigeh-v1-metric-label">Estado CANCELADA</span>
+            <strong class="sigeh-v1-metric-value">{{ ind.canceladas }}</strong>
+            <span class="text-muted">Jornadas canceladas en programación</span>
+          </article>
+
+          <article class="sigeh-v1-metric-card" data-testid="metric-horas-persona">
+            <span class="sigeh-v1-metric-label">Horas-Persona Programadas</span>
+            <strong class="sigeh-v1-metric-value">{{ ind.horasPersonaProgramadas }} h</strong>
+            <span class="text-muted">Recortadas a la ventana (no cobertura efectiva)</span>
+          </article>
+        </div>
+      </section>
+
+      <!-- Secciones Explícitamente No Disponibles en Modo Real (Cero relleno sintético) -->
+      <section
+        class="sigeh-v1-unavailable-grid"
+        aria-label="Indicadores no disponibles en contrato OpenAPI v1"
+        data-testid="dashboard-unavailable-sections"
+      >
+        <article class="sigeh-v1-unavailable-card" data-testid="unavailable-attendance">
+          <strong>Asistencia Efectiva Agregada — No disponible en este tablero</strong>
+          <p>
+            <code>GET /api/v1/tableros/coordinacion</code> no expone porcentajes de puntualidad ni asistencia agregada. Para consultar pases de lista registrados de forma separada, abra
+            <a routerLink="/pases-lista" data-testid="link-dashboard-to-pases-lista">Pases de Lista (<code>GET /api/v1/pases-lista</code>)</a>.
           </p>
-        } @else {
-          <ul class="dashboard__incident-list" data-testid="incident-list">
-            @for (inc of snap.incidents; track inc.incidentId) {
-              <li class="dashboard__incident-card" [attr.data-testid]="'incident-' + inc.incidentId">
-                <div class="dashboard__incident-top">
-                  <div class="dashboard__incident-id-wrap">
-                    <span class="dashboard__incident-code">{{ inc.incidentId }}</span>
-                    <strong class="dashboard__incident-cat">{{ inc.category }}</strong>
-                  </div>
-                  <app-status-badge [variant]="inc.severity" />
-                </div>
-                <p class="dashboard__incident-summary">{{ inc.summary }}</p>
-                <div class="dashboard__incident-meta">
-                  <span>{{ inc.serviceName }}</span>
-                  <span>Turno {{ inc.shift }} · {{ inc.reportedTime }}</span>
-                  <span class="dashboard__incident-status">{{ inc.resolutionStatus }}</span>
-                </div>
-              </li>
-            }
-          </ul>
+        </article>
+
+        <article class="sigeh-v1-unavailable-card" data-testid="unavailable-coverage">
+          <strong>Cobertura Realizada por Servicio — No disponible en modo real</strong>
+          <p>
+            Pendiente en <code>x-sigeh-pending-resources</code>. Las <code>horasPersonaProgramadas</code> no equivalen a cobertura efectiva.
+          </p>
+        </article>
+
+        <article class="sigeh-v1-unavailable-card" data-testid="unavailable-incidents">
+          <strong>Incidencias Operativas Verificadas — No disponible en modo real</strong>
+          <p>
+            Pendiente en <code>x-sigeh-pending-resources</code> hasta aprobar privilegios SQL y reglas de negocio de incidencias.
+          </p>
+        </article>
+      </section>
+    } @else {
+      <!-- Vista Demostración Sintética F1 (Intacta por defecto) -->
+      <section
+        class="dashboard__kpi-grid"
+        aria-label="Indicadores clave de desempeño"
+        data-testid="kpi-cards-grid"
+      >
+        @for (metric of snap.kpis; track metric.id) {
+          <app-kpi-stat-card [metric]="metric" />
         }
       </section>
-    </div>
+
+      <section
+        class="sigeh-panel"
+        [class.sigeh-panel--highlighted]="highlightedSection() === 'cobertura'"
+        aria-labelledby="heading-cobertura"
+        data-testid="section-service-coverage"
+      >
+        <div class="sigeh-panel__header">
+          <div>
+            <h3 id="heading-cobertura" class="sigeh-panel__title">
+              Cobertura de Enfermería por Servicio Clínico
+            </h3>
+            <p class="sigeh-panel__subtitle">
+              Comparativa de plantilla requerida vs. presente en turno (Datos Sintéticos de Demostración)
+            </p>
+          </div>
+          <app-status-badge
+            variant="info"
+            [customLabel]="snap.serviceCoverage.length + ' servicios en monitoreo'"
+          />
+        </div>
+
+        <div class="sigeh-table-wrap">
+          <table class="sigeh-table" data-testid="coverage-table">
+            <thead>
+              <tr>
+                <th scope="col">Servicio Hospitalario (Demo)</th>
+                <th scope="col">Turno</th>
+                <th scope="col" class="text-right">Requerido</th>
+                <th scope="col" class="text-right">Presente</th>
+                <th scope="col">Índice de Cobertura</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Observación de Supervisión</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (srv of snap.serviceCoverage; track srv.serviceId) {
+                <tr [attr.data-testid]="'row-service-' + srv.serviceId">
+                  <td>
+                    <strong class="dashboard__service-name">{{ srv.serviceName }}</strong>
+                    <span class="dashboard__service-wing">{{ srv.floorOrWing }}</span>
+                  </td>
+                  <td>
+                    <span class="dashboard__shift-tag">{{ srv.shift }}</span>
+                  </td>
+                  <td class="text-right font-mono">{{ srv.requiredStaff }}</td>
+                  <td class="text-right font-mono">
+                    <strong>{{ srv.presentStaff }}</strong>
+                    <span class="text-muted"> / {{ srv.assignedStaff }}</span>
+                  </td>
+                  <td>
+                    <div class="dashboard__cov-cell">
+                      <span class="dashboard__cov-pct">{{ srv.coveragePercentage }}%</span>
+                      <div class="sigeh-progress-track">
+                        <div
+                          class="sigeh-progress-fill"
+                          [class]="'sigeh-progress-fill--' + srv.status"
+                          [style.width.%]="srv.coveragePercentage"
+                        ></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <app-status-badge [variant]="srv.status" />
+                  </td>
+                  <td class="dashboard__note-cell">{{ srv.supervisorNote }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="dashboard__bottom-grid">
+        <section
+          class="sigeh-panel"
+          [class.sigeh-panel--highlighted]="highlightedSection() === 'asistencia'"
+          aria-labelledby="heading-asistencia"
+          data-testid="section-attendance-summary"
+        >
+          <div class="sigeh-panel__header">
+            <div>
+              <h3 id="heading-asistencia" class="sigeh-panel__title">
+                Balance de Asistencia y Categorías
+              </h3>
+              <p class="sigeh-panel__subtitle">
+                Desglose de puntualidad, suplencias y disponibilidad por perfil
+              </p>
+            </div>
+          </div>
+
+          <div class="dashboard__mini-stats">
+            <div class="dashboard__mini-stat">
+              <span class="dashboard__mini-label">Puntualidad</span>
+              <strong class="dashboard__mini-value">{{ snap.attendance.punctualityPercentage }}%</strong>
+            </div>
+            <div class="dashboard__mini-stat">
+              <span class="dashboard__mini-label">Suplencias Activas</span>
+              <strong class="dashboard__mini-value">{{ snap.attendance.activeSubstitutions }}</strong>
+            </div>
+            <div class="dashboard__mini-stat">
+              <span class="dashboard__mini-label">Ausencias Justificadas</span>
+              <strong class="dashboard__mini-value">{{ snap.attendance.justifiedAbsences }}</strong>
+            </div>
+            <div class="dashboard__mini-stat">
+              <span class="dashboard__mini-label">Faltas / Retardos</span>
+              <strong class="dashboard__mini-value">
+                {{ snap.attendance.unjustifiedAbsences + snap.attendance.delayedCheckIns }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="dashboard__category-list">
+            @for (cat of snap.attendance.categories; track cat.categoryId) {
+              <div class="dashboard__category-item">
+                <div class="dashboard__category-top">
+                  <span class="dashboard__category-name">{{ cat.categoryLabel }}</span>
+                  <span class="dashboard__category-counts">
+                    <strong>{{ cat.presentCount }}</strong> / {{ cat.scheduledCount }} ({{
+                      cat.availabilityPercentage
+                    }}%)
+                  </span>
+                </div>
+                <div class="sigeh-progress-track">
+                  <div
+                    class="sigeh-progress-fill"
+                    [class]="'sigeh-progress-fill--' + cat.status"
+                    [style.width.%]="cat.availabilityPercentage"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section
+          class="sigeh-panel"
+          [class.sigeh-panel--highlighted]="highlightedSection() === 'incidencias'"
+          aria-labelledby="heading-incidencias"
+          data-testid="section-incidents-monitor"
+        >
+          <div class="sigeh-panel__header">
+            <div>
+              <h3 id="heading-incidencias" class="sigeh-panel__title">
+                Monitor de Incidencias del Turno
+              </h3>
+              <p class="sigeh-panel__subtitle">
+                Eventos operativos sintéticos reportados por supervisión de piso
+              </p>
+            </div>
+            <app-status-badge
+              [variant]="snap.incidents.length > 2 ? 'warning' : 'optimal'"
+              [customLabel]="snap.incidents.length + ' registradas'"
+            />
+          </div>
+
+          @if (snap.incidents.length === 0) {
+            <p class="dashboard__empty-inline">
+              No hay incidencias reportadas para el filtro actual.
+            </p>
+          } @else {
+            <ul class="dashboard__incident-list" data-testid="incident-list">
+              @for (inc of snap.incidents; track inc.incidentId) {
+                <li class="dashboard__incident-card" [attr.data-testid]="'incident-' + inc.incidentId">
+                  <div class="dashboard__incident-top">
+                    <div class="dashboard__incident-id-wrap">
+                      <span class="dashboard__incident-code">{{ inc.incidentId }}</span>
+                      <strong class="dashboard__incident-cat">{{ inc.category }}</strong>
+                    </div>
+                    <app-status-badge [variant]="inc.severity" />
+                  </div>
+                  <p class="dashboard__incident-summary">{{ inc.summary }}</p>
+                  <div class="dashboard__incident-meta">
+                    <span>{{ inc.serviceName }}</span>
+                    <span>Turno {{ inc.shift }} · {{ inc.reportedTime }}</span>
+                    <span class="dashboard__incident-status">{{ inc.resolutionStatus }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </div>
+    }
   }
 </section>

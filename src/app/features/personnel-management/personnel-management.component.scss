@@ -175,3 +175,52 @@
     font-weight: 600;
   }
 }
+
+.pers-page__mode-controls,
+.pers-page__mode-btns,
+.pers-page__contracts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pers-page__notice {
+  margin-top: var(--sigeh-space-2);
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--sigeh-radius-md);
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a8a;
+  font-size: 0.8rem;
+
+  &--warn {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+  }
+}
+
+.pers-page__assign-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pers-page__assign-item {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--sigeh-border-subtle);
+  border-radius: var(--sigeh-radius-sm);
+  background: var(--sigeh-surface-subtle);
+  font-size: 0.8rem;
+}
+
+.pers-page__assign-meta {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--sigeh-text-muted);
+  word-break: break-all;
+}

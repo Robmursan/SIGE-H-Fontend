@@ -37,10 +37,32 @@
     </div>
 
     @if (!sidebarCollapsed()) {
-      <div class="shell__unit-card">
-        <span class="shell__unit-tag">UNIDAD DEMOSTRACIÓN F1</span>
-        <strong class="shell__unit-title">Hospital Modelo Sintético</strong>
-        <span class="shell__unit-meta">División de Enfermería · Sin Datos Reales</span>
+      <div class="shell__unit-card" data-testid="sidebar-context-card">
+        @if (authSession.isAuthenticated()) {
+          <span class="shell__unit-tag">CONTEXTO IAM V2 AUTORIZADO</span>
+          <strong class="shell__unit-title">
+            {{
+              authSession.selectedHospitalId()
+                ? 'Hospital ' + authSession.selectedHospitalId()?.slice(0, 8) + '…'
+                : 'Sin hospital asignado'
+            }}
+          </strong>
+          <span class="shell__unit-meta">
+            {{
+              authSession.selectedServiceId()
+                ? 'Servicio ' + authSession.selectedServiceId()?.slice(0, 8) + '…'
+                : 'Sin servicio explícito en /auth/me'
+            }}
+          </span>
+        } @else if (isRealApiSessionActive()) {
+          <span class="shell__unit-tag">INTEGRACIÓN QA (OPT-IN)</span>
+          <strong class="shell__unit-title">API OpenAPI v1 Activa</strong>
+          <span class="shell__unit-meta">Inicie sesión IAM V2 en /login</span>
+        } @else {
+          <span class="shell__unit-tag">UNIDAD DEMOSTRACIÓN F1</span>
+          <strong class="shell__unit-title">Hospital Modelo Sintético</strong>
+          <span class="shell__unit-meta">División de Enfermería · Sin Datos Reales</span>
+        }
       </div>
     }
 
@@ -117,13 +139,42 @@
 
       <div class="shell__header-right">
         <span class="shell__demo-pill" data-testid="header-demo-pill">
-          MODO DEMO SINTÉTICO
+          {{
+            authSession.isAuthenticated()
+              ? 'SESIÓN IAM V2 (RAM)'
+              : isRealApiSessionActive()
+                ? 'INTEGRACIÓN QA (OPT-IN)'
+                : 'MODO DEMO SINTÉTICO'
+          }}
         </span>
-        <div class="shell__profile" aria-label="Perfil activo simulado">
-          <div class="shell__profile-avatar" aria-hidden="true">JE</div>
+        @if (authSession.isAuthenticated()) {
+          <button
+            type="button"
+            class="sigeh-btn sigeh-btn--outline"
+            data-testid="btn-header-logout"
+            (click)="logoutFromHeader()"
+          >
+            Cerrar sesión
+          </button>
+        }
+        <div class="shell__profile" aria-label="Perfil activo">
+          <div class="shell__profile-avatar" aria-hidden="true">
+            {{ authSession.isAuthenticated() ? 'IA' : 'JE' }}
+          </div>
           <div class="shell__profile-meta">
-            <span class="shell__profile-role">Jefatura de Enfermería</span>
-            <span class="shell__profile-scope">Sesión Simulada (Sin Auth Real)</span>
+            @if (authSession.isAuthenticated()) {
+              <span class="shell__profile-role">Sesión IAM Autenticada</span>
+              <span class="shell__profile-scope">
+                {{
+                  authSession.selectedHospitalId()
+                    ? 'Hospital ' + authSession.selectedHospitalId()?.slice(0, 8) + '…'
+                    : 'Sin ámbito asignado'
+                }}
+              </span>
+            } @else {
+              <span class="shell__profile-role">Jefatura de Enfermería</span>
+              <span class="shell__profile-scope">Sesión Simulada (Sin Auth Real)</span>
+            }
           </div>
         </div>
       </div>
@@ -137,7 +188,13 @@
     <!-- Pie Institucional -->
     <footer class="shell__footer">
       <span>SIGE-H Frontend v{{ runtimeConfig.appVersion }} · Arquitectura Angular Standalone</span>
-      <span>Datos 100% sintéticos de demostración · Preparado para contratos OpenAPI</span>
+      <span>
+        {{
+          isRealApiSessionActive()
+            ? 'Integración OpenAPI v1 (opt-in en memoria RAM · proxy /api mismo origen)'
+            : 'Datos 100% sintéticos de demostración · Preparado para contratos OpenAPI'
+        }}
+      </span>
     </footer>
   </div>
 </div>

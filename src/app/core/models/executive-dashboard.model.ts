@@ -88,8 +88,28 @@ export interface OperationalIncident {
   readonly summary: string;
 }
 
+export type CoordinationDashboardSemanticBase = 'PROGRAMACION_NO_ASISTENCIA_NI_COBERTURA';
+
+export interface CoordinationProgrammingIndicators {
+  readonly base: CoordinationDashboardSemanticBase;
+  readonly jornadas: number;
+  readonly empleadosProgramados: number;
+  readonly programadas: number;
+  readonly canceladas: number;
+  readonly sustituidas: number;
+  readonly cerradas: number;
+  readonly horasPersonaProgramadas: number;
+  readonly hospitalId: string;
+  readonly servicioId: string;
+  readonly divisionId: string | null;
+  readonly desde: string;
+  readonly hasta: string;
+}
+
 export interface ExecutiveDashboardSnapshot {
   readonly metadata: DemoDataMetadata;
+  readonly projectionMode?: 'SYNTHETIC_FULL_DEMO' | 'OPENAPI_V1_PROGRAMMING_INDICATORS';
+  readonly programmingIndicators?: CoordinationProgrammingIndicators;
   readonly activeShift: ShiftFilter;
   readonly kpis: readonly KpiMetric[];
   readonly serviceCoverage: readonly ServiceCoverageItem[];
@@ -98,6 +118,11 @@ export interface ExecutiveDashboardSnapshot {
 }
 
 export interface DashboardQueryCriteria {
+  readonly hospitalId?: string;
+  readonly divisionId?: string;
+  readonly servicioId?: string;
+  readonly desde?: string;
+  readonly hasta?: string;
   readonly shift?: ShiftFilter;
   readonly serviceQuery?: string;
   readonly statusFilter?: 'ALL' | OperationalStatus;
@@ -124,6 +149,7 @@ export interface DashboardApiError {
   readonly title: string;
   readonly message: string;
   readonly requiredRoleHint?: string;
+  readonly retryAfterSeconds?: number;
   readonly timestampIso: string;
 }
 

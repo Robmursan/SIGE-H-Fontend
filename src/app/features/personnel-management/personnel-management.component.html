@@ -1,121 +1,257 @@
 <section class="pers-page" aria-label="Gestión de Personal de Enfermería">
-  <app-demo-mode-banner
-    [datasetCode]="queryResult().snapshot?.metadata?.datasetCode ?? 'SIGEH-DEMO-F2-PERSONAL-2026'"
-    [activeState]="queryResult().state"
-    (stateChange)="setSimulatedState($event)"
-  />
+  @if (!isRealOpenApiMode()) {
+    <app-demo-mode-banner
+      [datasetCode]="queryResult().snapshot?.metadata?.datasetCode ?? 'SIGEH-DEMO-F2-PERSONAL-2026'"
+      [activeState]="queryResult().state"
+      (stateChange)="setSimulatedState($event)"
+    />
+  }
 
-  <!-- Encabezado y Filtros del Padrón de Personal -->
+  <!-- Encabezado, Selector de Origen (Opt-In) y Filtros del Padrón de Personal -->
   <header class="sigeh-panel pers-page__toolbar" data-testid="personnel-toolbar">
     <div class="pers-page__top">
       <div>
-        <div class="pers-page__eyebrow">MÓDULO F2 · PADRÓN NOMINAL Y ADSCRIPCIÓN (SOLO LECTURA)</div>
+        <div class="pers-page__eyebrow">
+          MÓDULO F2 / F4-C · PADRÓN DE PERSONAL Y ADSCRIPCIONES (SOLO LECTURA)
+        </div>
         <h2 class="pers-page__title">Gestión de Personal y Fuerza de Trabajo</h2>
         <p class="pers-page__subtitle">
-          Consulta de plantilla institucional, categoría nominal, función operativa, servicio de pertenencia y estado laboral.
+          @if (isRealOpenApiMode()) {
+            Integración contractual OpenAPI v1 (<code>/api/v1/empleados</code>, detalle y
+            <code>/api/v1/contratos/{{ '{contratoId}' }}/adscripciones</code>) dentro del ámbito autorizado.
+          } @else {
+            Consulta de plantilla institucional, categoría nominal, función operativa, servicio de pertenencia y estado laboral.
+          }
         </p>
       </div>
-      <span class="pers-page__readonly-tag" data-testid="personnel-readonly-badge">
-        MODO CONSULTA · ESCRITURA PENDIENTE OPENAPI
-      </span>
+
+      <div class="pers-page__mode-controls">
+        <span class="pers-page__readonly-tag" data-testid="personnel-readonly-badge">
+          {{ isRealOpenApiMode() ? 'OPENAPI v1 REAL (SIN RUD)' : 'MODO CONSULTA · DEMO SINTÉTICA' }}
+        </span>
+        <div class="pers-page__mode-btns" role="group" aria-label="Origen de datos de personal">
+          <button
+            type="button"
+            class="sigeh-btn"
+            [class.sigeh-btn--primary]="!isRealOpenApiMode()"
+            [class.sigeh-btn--outline]="isRealOpenApiMode()"
+            data-testid="btn-mode-synthetic"
+            (click)="setPersonnelDataSourceMode('SYNTHETIC_DEMO')"
+          >
+            Demo Sintético
+          </button>
+          <button
+            type="button"
+            class="sigeh-btn"
+            [class.sigeh-btn--primary]="isRealOpenApiMode()"
+            [class.sigeh-btn--outline]="!isRealOpenApiMode()"
+            data-testid="btn-mode-openapi"
+            (click)="setPersonnelDataSourceMode('OPENAPI_HTTP_READY')"
+          >
+            OpenAPI v1 (Opt-In)
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div class="pers-page__filters">
-      <div class="pers-page__field">
-        <label for="pers-search">Búsqueda nominal o matrícula</label>
-        <input
-          id="pers-search"
-          type="search"
-          class="pers-page__input"
-          placeholder="Nombre, matrícula, función..."
-          [ngModel]="searchQuery()"
-          (ngModelChange)="onSearchChange($event)"
-          data-testid="input-personnel-search"
-        />
+    <!-- Filtros Modo Real OpenAPI v1 (F4-C) -->
+    @if (isRealOpenApiMode()) {
+      <div class="pers-page__notice" role="note" data-testid="personnel-v1-projection-notice">
+        <strong>Proyección contractual OpenAPI v1 (L3B-2A):</strong>
+        Solo se exponen <code>empleadoId</code>, <code>nombres</code>, <code>primerApellido</code>,
+        <code>activo</code> y adscripciones vigentes (<code>NOMINAL</code> / <code>OPERATIVA</code>).
+        No se expone RUD ni expediente completo.
       </div>
 
-      <div class="pers-page__field">
-        <label for="pers-hospital">Hospital de adscripción</label>
-        <select
-          id="pers-hospital"
-          class="pers-page__select"
-          [ngModel]="selectedHospitalId()"
-          (ngModelChange)="onHospitalChange($event)"
-          data-testid="select-personnel-hospital"
-        >
-          <option value="ALL">Todos los hospitales</option>
-          @if (queryResult().snapshot; as snap) {
-            @for (h of snap.availableHospitals; track h.id) {
-              <option [value]="h.id">{{ h.name }}</option>
+      @if (!authSession.isAuthenticated()) {
+        <div class="pers-page__notice pers-page__notice--warn" role="alert" data-testid="personnel-iam-required-notice">
+          Requiere sesión IAM V2 activa en memoria RAM para obtener ámbitos autorizados desde
+          <code>/api/v1/auth/me</code>.
+          <a routerLink="/login" data-testid="link-go-iam-login">Ir a Sesión IAM V2</a>
+        </div>
+      } @else if (authSession.scopeLimitationNotice(); as scopeNotice) {
+        <div class="pers-page__notice" role="note" data-testid="personnel-scope-notice">
+          {{ scopeNotice.message }}
+        </div>
+      }
+
+      <div class="pers-page__filters" data-testid="personnel-openapi-filters">
+        <div class="pers-page__field">
+          <label for="pers-auth-hospital">Hospital autorizado (<code>/auth/me</code>)</label>
+          <select
+            id="pers-auth-hospital"
+            class="pers-page__select"
+            [ngModel]="authSession.selectedHospitalId() ?? ''"
+            (ngModelChange)="onAuthorizedHospitalChange($event)"
+            [disabled]="authSession.authorizedHospitals().length === 0"
+            data-testid="select-openapi-hospital"
+          >
+            @if (authSession.authorizedHospitals().length === 0) {
+              <option value="">Sin hospital autorizado</option>
             }
-          }
-        </select>
-      </div>
+            @for (h of authSession.authorizedHospitals(); track h.hospitalId) {
+              <option [value]="h.hospitalId">{{ h.displayLabel }}</option>
+            }
+          </select>
+        </div>
 
-      <div class="pers-page__field">
-        <label for="pers-service">Servicio de pertenencia</label>
-        <select
-          id="pers-service"
-          class="pers-page__select"
-          [ngModel]="selectedServiceId()"
-          (ngModelChange)="onServiceChange($event)"
-          data-testid="select-personnel-service"
-        >
-          <option value="ALL">Todos los servicios</option>
-          @for (s of filteredServicesOptions(); track s.id) {
-            <option [value]="s.id">{{ s.name }}</option>
-          }
-        </select>
-      </div>
+        <div class="pers-page__field">
+          <label for="pers-auth-service">Servicio autorizado (<code>servicioId</code>)</label>
+          <select
+            id="pers-auth-service"
+            class="pers-page__select"
+            [ngModel]="authSession.selectedServiceId() ?? ''"
+            (ngModelChange)="onAuthorizedServiceChange($event)"
+            [disabled]="authSession.authorizedServicesForSelectedHospital().length === 0"
+            data-testid="select-openapi-service"
+          >
+            @if (authSession.authorizedServicesForSelectedHospital().length === 0) {
+              <option value="">Sin servicio explícito autorizado</option>
+            }
+            @for (s of authSession.authorizedServicesForSelectedHospital(); track s.servicioId) {
+              <option [value]="s.servicioId">{{ s.displayLabel }}</option>
+            }
+          </select>
+        </div>
 
-      <div class="pers-page__field">
-        <label for="pers-category">Categoría nominal</label>
-        <select
-          id="pers-category"
-          class="pers-page__select"
-          [ngModel]="selectedCategory()"
-          (ngModelChange)="onCategoryChange($event)"
-          data-testid="select-personnel-category"
-        >
-          <option value="ALL">Todas las categorías</option>
-          @for (cat of categories; track cat) {
-            <option [value]="cat">{{ cat }}</option>
-          }
-        </select>
-      </div>
+        <div class="pers-page__field">
+          <label for="pers-effective-date">Fecha de vigencia (<code>fecha</code>)</label>
+          <input
+            id="pers-effective-date"
+            type="date"
+            class="pers-page__input"
+            [ngModel]="effectiveDate()"
+            (ngModelChange)="onEffectiveDateChange($event)"
+            data-testid="input-openapi-fecha"
+          />
+        </div>
 
-      <div class="pers-page__field">
-        <label for="pers-status">Estado laboral</label>
-        <select
-          id="pers-status"
-          class="pers-page__select"
-          [ngModel]="selectedStatus()"
-          (ngModelChange)="onStatusChange($event)"
-          data-testid="select-personnel-status"
-        >
-          <option value="ALL">Todos los estados</option>
-          @for (st of employmentStatuses; track st) {
-            <option [value]="st">{{ st }}</option>
-          }
-        </select>
-      </div>
+        <div class="pers-page__field">
+          <label for="pers-openapi-limit">Límite por cursor (<code>limit</code>)</label>
+          <select
+            id="pers-openapi-limit"
+            class="pers-page__select"
+            [ngModel]="openApiLimit()"
+            (ngModelChange)="onOpenApiLimitChange($event)"
+            data-testid="select-openapi-limit"
+          >
+            <option [ngValue]="10">10 registros</option>
+            <option [ngValue]="25">25 registros</option>
+            <option [ngValue]="50">50 registros</option>
+            <option [ngValue]="100">100 registros</option>
+          </select>
+        </div>
 
-      <div class="pers-page__actions">
-        <button
-          type="button"
-          class="sigeh-btn sigeh-btn--outline"
-          data-testid="btn-personnel-reset"
-          (click)="resetFilters()"
-        >
-          Limpiar filtros
-        </button>
+        <div class="pers-page__actions">
+          <button
+            type="button"
+            class="sigeh-btn sigeh-btn--outline"
+            data-testid="btn-openapi-reload"
+            (click)="resetStaffCursorPagination()"
+          >
+            Recargar padrón
+          </button>
+        </div>
       </div>
-    </div>
+    } @else {
+      <!-- Filtros Modo Demostración Sintética (F2 — intacto por defecto) -->
+      <div class="pers-page__filters">
+        <div class="pers-page__field">
+          <label for="pers-search">Búsqueda nominal o matrícula</label>
+          <input
+            id="pers-search"
+            type="search"
+            class="pers-page__input"
+            placeholder="Nombre, matrícula, función..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+            data-testid="input-personnel-search"
+          />
+        </div>
+
+        <div class="pers-page__field">
+          <label for="pers-hospital">Hospital de adscripción</label>
+          <select
+            id="pers-hospital"
+            class="pers-page__select"
+            [ngModel]="selectedHospitalId()"
+            (ngModelChange)="onHospitalChange($event)"
+            data-testid="select-personnel-hospital"
+          >
+            <option value="ALL">Todos los hospitales</option>
+            @if (queryResult().snapshot; as snap) {
+              @for (h of snap.availableHospitals; track h.id) {
+                <option [value]="h.id">{{ h.name }}</option>
+              }
+            }
+          </select>
+        </div>
+
+        <div class="pers-page__field">
+          <label for="pers-service">Servicio de pertenencia</label>
+          <select
+            id="pers-service"
+            class="pers-page__select"
+            [ngModel]="selectedServiceId()"
+            (ngModelChange)="onServiceChange($event)"
+            data-testid="select-personnel-service"
+          >
+            <option value="ALL">Todos los servicios</option>
+            @for (s of filteredServicesOptions(); track s.id) {
+              <option [value]="s.id">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="pers-page__field">
+          <label for="pers-category">Categoría nominal</label>
+          <select
+            id="pers-category"
+            class="pers-page__select"
+            [ngModel]="selectedCategory()"
+            (ngModelChange)="onCategoryChange($event)"
+            data-testid="select-personnel-category"
+          >
+            <option value="ALL">Todas las categorías</option>
+            @for (cat of categories; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="pers-page__field">
+          <label for="pers-status">Estado laboral</label>
+          <select
+            id="pers-status"
+            class="pers-page__select"
+            [ngModel]="selectedStatus()"
+            (ngModelChange)="onStatusChange($event)"
+            data-testid="select-personnel-status"
+          >
+            <option value="ALL">Todos los estados</option>
+            @for (st of employmentStatuses; track st) {
+              <option [value]="st">{{ st }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="pers-page__actions">
+          <button
+            type="button"
+            class="sigeh-btn sigeh-btn--outline"
+            data-testid="btn-personnel-reset"
+            (click)="resetFilters()"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      </div>
+    }
   </header>
 
-  <!-- Indicadores de Plantilla -->
+  <!-- Indicadores de Plantilla (solo en modo sintético completo; no se inventan KPIs en v1) -->
   @if (queryResult().snapshot; as snap) {
-    @if (queryResult().state === 'ready') {
+    @if (queryResult().state === 'ready' && snap.indicators.length > 0) {
       <section
         class="pers-page__kpi-grid"
         aria-label="Indicadores de plantilla"
@@ -128,92 +264,129 @@
     }
   }
 
-  <!-- Estados de Carga, Vacío, Error y Acceso Denegado -->
+  <!-- Estados de Carga, Vacío, Error, Acceso Denegado y Servicio No Disponible -->
   @if (queryResult().state !== 'ready') {
     <app-ui-state-panel
       [state]="nonReadyState()"
       [errorDetails]="queryResult().error"
-      (retryRequested)="setSimulatedState('ready')"
+      (retryRequested)="refreshPersonnel()"
       (resetRequested)="resetFilters()"
       (restoreAccessRequested)="setSimulatedState('ready')"
     />
   }
 
-  <!-- Vista Maestro-Detalle: Tabla Paginada + Ficha de Empleado -->
+  <!-- Vista Maestro-Detalle -->
   @if (queryResult().state === 'ready' && queryResult().snapshot; as snap) {
     <div class="pers-page__workspace" data-testid="personnel-workspace">
-      <!-- Tabla de Personal con Paginación -->
+      <!-- Tabla del Padrón -->
       <section class="sigeh-panel" aria-labelledby="heading-personnel-table">
         <div class="sigeh-panel__header">
           <div>
             <h3 id="heading-personnel-table" class="sigeh-panel__title">
-              Directorio Operativo de Personal de Enfermería
+              {{
+                isRealOpenApiMode()
+                  ? 'Padrón Vigente Autorizado (GET /api/v1/empleados)'
+                  : 'Directorio Operativo de Personal de Enfermería'
+              }}
             </h3>
-            <p class="sigeh-panel__subtitle">
-              Mostrando {{ snap.pagination.startItemIndex }}–{{ snap.pagination.endItemIndex }} de
-              {{ snap.pagination.totalItems }} registros sintéticos
-            </p>
+            @if (isRealOpenApiMode()) {
+              <p class="sigeh-panel__subtitle">
+                Bloque #{{ cursorPageIndex() }} · {{ snap.items.length }} registros (vigencia:
+                {{ snap.effectiveQueryDate }}) · orden <code>id:asc</code>
+              </p>
+            } @else {
+              <p class="sigeh-panel__subtitle">
+                Mostrando {{ snap.pagination.startItemIndex }}–{{ snap.pagination.endItemIndex }} de
+                {{ snap.pagination.totalItems }} registros sintéticos
+              </p>
+            }
           </div>
 
-          <div class="pers-page__page-size">
-            <label for="pers-pagesize-select">Filas:</label>
-            <select
-              id="pers-pagesize-select"
-              class="pers-page__select"
-              [ngModel]="pageSize()"
-              (ngModelChange)="onPageSizeChange($event)"
-              data-testid="select-personnel-pagesize"
-            >
-              <option [ngValue]="5">5 por página</option>
-              <option [ngValue]="10">10 por página</option>
-              <option [ngValue]="12">12 por página</option>
-            </select>
-          </div>
+          @if (!isRealOpenApiMode()) {
+            <div class="pers-page__page-size">
+              <label for="pers-pagesize-select">Filas:</label>
+              <select
+                id="pers-pagesize-select"
+                class="pers-page__select"
+                [ngModel]="pageSize()"
+                (ngModelChange)="onPageSizeChange($event)"
+                data-testid="select-personnel-pagesize"
+              >
+                <option [ngValue]="5">5 por página</option>
+                <option [ngValue]="10">10 por página</option>
+                <option [ngValue]="12">12 por página</option>
+              </select>
+            </div>
+          }
         </div>
 
         <div class="sigeh-table-wrap">
           <table class="sigeh-table" data-testid="personnel-table">
             <thead>
-              <tr>
-                <th scope="col">Matrícula / Nombre (Demo)</th>
-                <th scope="col">Categoría Nominal / Función</th>
-                <th scope="col">Servicio de Pertenencia</th>
-                <th scope="col">Turno / Esquema</th>
-                <th scope="col">Estado</th>
-              </tr>
+              @if (isRealOpenApiMode()) {
+                <tr>
+                  <th scope="col">Empleado UUID</th>
+                  <th scope="col">Nombres y Primer Apellido</th>
+                  <th scope="col">Estado en Padrón</th>
+                </tr>
+              } @else {
+                <tr>
+                  <th scope="col">Matrícula / Nombre (Demo)</th>
+                  <th scope="col">Categoría Nominal / Función</th>
+                  <th scope="col">Servicio de Pertenencia</th>
+                  <th scope="col">Turno / Esquema</th>
+                  <th scope="col">Estado</th>
+                </tr>
+              }
             </thead>
             <tbody>
               @for (emp of snap.items; track emp.employeeId) {
                 <tr
                   class="pers-page__row"
                   [class.pers-page__row--selected]="
-                    snap.selectedEmployee?.employeeId === emp.employeeId
+                    (isRealOpenApiMode() ? selectedEmployeeId() : snap.selectedEmployee?.employeeId) ===
+                    emp.employeeId
                   "
                   [attr.data-testid]="'personnel-row-' + emp.employeeId"
                   (click)="selectEmployee(emp.employeeId)"
                 >
-                  <td>
-                    <span class="pers-page__code">{{ emp.employeeNumberDemo }}</span>
-                    <strong class="pers-page__name">{{ emp.fullNameDemo }}</strong>
-                  </td>
-                  <td>
-                    <strong class="pers-page__cat">{{ emp.nominalCategory }}</strong>
-                    <span class="text-muted">{{ emp.operationalFunction }}</span>
-                  </td>
-                  <td>
-                    <strong class="pers-page__srv">{{ emp.affiliation.serviceName }}</strong>
-                    <span class="text-muted">{{ emp.affiliation.hospitalName }}</span>
-                  </td>
-                  <td>
-                    <span class="pers-page__scheme">{{ emp.affiliation.scheduleScheme }}</span>
-                    <span class="text-muted">Turno: {{ emp.affiliation.baseShift }}</span>
-                  </td>
-                  <td>
-                    <app-status-badge
-                      [variant]="emp.statusSeverity"
-                      [customLabel]="emp.employmentStatus"
-                    />
-                  </td>
+                  @if (isRealOpenApiMode()) {
+                    <td>
+                      <span class="pers-page__code">{{ emp.employeeId }}</span>
+                    </td>
+                    <td>
+                      <strong class="pers-page__name">{{ emp.fullNameDemo }}</strong>
+                    </td>
+                    <td>
+                      <app-status-badge
+                        [variant]="emp.statusSeverity"
+                        [customLabel]="emp.activoContractFlag ? 'Activo' : 'Inactivo'"
+                      />
+                    </td>
+                  } @else {
+                    <td>
+                      <span class="pers-page__code">{{ emp.employeeNumberDemo }}</span>
+                      <strong class="pers-page__name">{{ emp.fullNameDemo }}</strong>
+                    </td>
+                    <td>
+                      <strong class="pers-page__cat">{{ emp.nominalCategory }}</strong>
+                      <span class="text-muted">{{ emp.operationalFunction }}</span>
+                    </td>
+                    <td>
+                      <strong class="pers-page__srv">{{ emp.affiliation.serviceName }}</strong>
+                      <span class="text-muted">{{ emp.affiliation.hospitalName }}</span>
+                    </td>
+                    <td>
+                      <span class="pers-page__scheme">{{ emp.affiliation.scheduleScheme }}</span>
+                      <span class="text-muted">Turno: {{ emp.affiliation.baseShift }}</span>
+                    </td>
+                    <td>
+                      <app-status-badge
+                        [variant]="emp.statusSeverity"
+                        [customLabel]="emp.employmentStatus"
+                      />
+                    </td>
+                  }
                 </tr>
               }
             </tbody>
@@ -221,35 +394,186 @@
         </div>
 
         <!-- Controles de Paginación -->
-        <footer class="pers-page__pagination" data-testid="personnel-pagination">
-          <span class="text-muted">
-            Página {{ snap.pagination.currentPage }} de {{ snap.pagination.totalPages }}
-          </span>
-          <div class="pers-page__page-btns">
-            <button
-              type="button"
-              class="sigeh-btn sigeh-btn--outline"
-              [disabled]="snap.pagination.currentPage <= 1"
-              data-testid="btn-page-prev"
-              (click)="goToPage(snap.pagination.currentPage - 1)"
-            >
-              ‹ Anterior
-            </button>
-            <button
-              type="button"
-              class="sigeh-btn sigeh-btn--outline"
-              [disabled]="snap.pagination.currentPage >= snap.pagination.totalPages"
-              data-testid="btn-page-next"
-              (click)="goToPage(snap.pagination.currentPage + 1)"
-            >
-              Siguiente ›
-            </button>
-          </div>
-        </footer>
+        @if (isRealOpenApiMode()) {
+          <footer class="pers-page__pagination" data-testid="personnel-cursor-pagination">
+            <span class="text-muted">
+              @if (snap.cursorPagination?.nextCursor; as nextC) {
+                Cursor siguiente disponible: <code>{{ nextC.slice(0, 8) }}…</code>
+              } @else {
+                Fin del padrón visible (<code>nextCursor = null</code>)
+              }
+            </span>
+            <div class="pers-page__page-btns">
+              <button
+                type="button"
+                class="sigeh-btn sigeh-btn--outline"
+                [disabled]="cursorPageIndex() <= 1"
+                data-testid="btn-cursor-first"
+                (click)="resetStaffCursorPagination()"
+              >
+                « Inicio
+              </button>
+              <button
+                type="button"
+                class="sigeh-btn sigeh-btn--outline"
+                [disabled]="!snap.cursorPagination?.nextCursor"
+                data-testid="btn-cursor-next"
+                (click)="loadNextStaffCursorPage()"
+              >
+                Siguiente (cursor) ›
+              </button>
+            </div>
+          </footer>
+        } @else {
+          <footer class="pers-page__pagination" data-testid="personnel-pagination">
+            <span class="text-muted">
+              Página {{ snap.pagination.currentPage }} de {{ snap.pagination.totalPages }}
+            </span>
+            <div class="pers-page__page-btns">
+              <button
+                type="button"
+                class="sigeh-btn sigeh-btn--outline"
+                [disabled]="snap.pagination.currentPage <= 1"
+                data-testid="btn-page-prev"
+                (click)="goToPage(snap.pagination.currentPage - 1)"
+              >
+                ‹ Anterior
+              </button>
+              <button
+                type="button"
+                class="sigeh-btn sigeh-btn--outline"
+                [disabled]="snap.pagination.currentPage >= snap.pagination.totalPages"
+                data-testid="btn-page-next"
+                (click)="goToPage(snap.pagination.currentPage + 1)"
+              >
+                Siguiente ›
+              </button>
+            </div>
+          </footer>
+        }
       </section>
 
-      <!-- Detalle de Empleado Seleccionado -->
-      @if (snap.selectedEmployee; as emp) {
+      <!-- Panel Derecho: Detalle Real OpenAPI v1 + Adscripciones por Contrato -->
+      @if (isRealOpenApiMode()) {
+        <aside
+          class="sigeh-panel pers-page__detail"
+          aria-labelledby="heading-employee-detail-v1"
+          data-testid="employee-detail-openapi-panel"
+        >
+          <h3 id="heading-employee-detail-v1" class="sigeh-panel__title">
+            Detalle de Empleado y Adscripciones (OpenAPI v1)
+          </h3>
+
+          @if (!employeeDetailResult()) {
+            <p class="pers-page__obs" data-testid="detail-prompt-select">
+              Seleccione un empleado del padrón para consultar
+              <code>GET /api/v1/empleados/{{ '{empleadoId}' }}</code> y sus contratos vigentes.
+            </p>
+          } @else if (employeeDetailResult(); as detailRes) {
+            @if (detailRes.state !== 'ready') {
+              <app-ui-state-panel
+                [state]="detailNonReadyState()"
+                [errorDetails]="detailRes.error"
+                (retryRequested)="selectedEmployeeId() && selectEmployee(selectedEmployeeId()!)"
+                (resetRequested)="resetStaffCursorPagination()"
+              />
+            } @else if (detailRes.detail; as det) {
+              <div class="pers-page__section" data-testid="openapi-employee-summary">
+                <span class="pers-page__code">{{ det.employee.employeeId }}</span>
+                <h4>{{ det.employee.fullNameDemo }}</h4>
+                <app-status-badge
+                  [variant]="det.employee.statusSeverity"
+                  [customLabel]="det.employee.activoContractFlag ? 'Activo' : 'Inactivo'"
+                />
+                <p class="pers-page__obs">
+                  Detalle mínimo sin RUD ni expediente completo (vigencia {{ effectiveDate() }}).
+                </p>
+              </div>
+
+              <div class="pers-page__section" data-testid="openapi-employee-assignments">
+                <h4 class="pers-page__subhead">
+                  Adscripciones Visibles en el Servicio ({{ det.assignments.length }})
+                </h4>
+                @if (det.assignments.length === 0) {
+                  <p class="pers-page__obs">
+                    Sin adscripciones vigentes visibles en el servicio solicitado.
+                  </p>
+                } @else {
+                  <ul class="pers-page__assign-list">
+                    @for (a of det.assignments; track a.adscripcionId) {
+                      <li class="pers-page__assign-item">
+                        <div>
+                          <strong>{{ a.clase }}</strong> · Vigencia: {{ a.inicio }} →
+                          {{ a.fin ?? 'Vigente (sin fin)' }}
+                        </div>
+                        <div class="pers-page__assign-meta">
+                          Adscripción: <code>{{ a.adscripcionId }}</code> · Contrato:
+                          <code>{{ a.contratoId }}</code>
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                }
+
+                @if (det.distinctContractIds.length > 0) {
+                  <div class="pers-page__contracts" data-testid="openapi-contract-actions">
+                    <h4 class="pers-page__subhead">Consultar Adscripciones por Contrato</h4>
+                    @for (cId of det.distinctContractIds; track cId) {
+                      <button
+                        type="button"
+                        class="sigeh-btn sigeh-btn--outline"
+                        [attr.data-testid]="'btn-load-contract-' + cId"
+                        (click)="loadContractAssignments(cId)"
+                      >
+                        Contrato {{ cId.slice(0, 8) }}… → Ver adscripciones
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+
+              @if (contractAssignmentsResult(); as caRes) {
+                <div class="pers-page__section" data-testid="openapi-contract-assignments-panel">
+                  <h4 class="pers-page__subhead">
+                    Adscripciones del Contrato <code>{{ caRes.contratoId }}</code>
+                  </h4>
+                  @if (caRes.state !== 'ready') {
+                    <app-ui-state-panel
+                      [state]="assignmentsNonReadyState()"
+                      [errorDetails]="caRes.error"
+                      (retryRequested)="loadContractAssignments(caRes.contratoId, contractAssignmentsCursor())"
+                    />
+                  } @else {
+                    <ul class="pers-page__assign-list" data-testid="contract-assignments-list">
+                      @for (item of caRes.items; track item.adscripcionId) {
+                        <li class="pers-page__assign-item">
+                          <strong>{{ item.clase }}</strong> · {{ item.inicio }} →
+                          {{ item.fin ?? 'Vigente' }}
+                          <div class="pers-page__assign-meta">
+                            <code>{{ item.adscripcionId }}</code> · Servicio:
+                            <code>{{ item.servicioId }}</code>
+                          </div>
+                        </li>
+                      }
+                    </ul>
+                    @if (caRes.cursorPagination?.nextCursor; as nextAssignCursor) {
+                      <button
+                        type="button"
+                        class="sigeh-btn sigeh-btn--outline"
+                        data-testid="btn-contract-assignments-next"
+                        (click)="loadContractAssignments(caRes.contratoId, nextAssignCursor)"
+                      >
+                        Más adscripciones (cursor) ›
+                      </button>
+                    }
+                  }
+                </div>
+              }
+            }
+          }
+        </aside>
+      } @else if (snap.selectedEmployee; as emp) {
+        <!-- Detalle de Empleado Seleccionado (Modo Demostración Sintética F2) -->
         <aside
           class="sigeh-panel pers-page__detail"
           aria-labelledby="heading-employee-detail"
@@ -319,7 +643,9 @@
               </div>
               <div>
                 <dt>Antigüedad Institucional (Demo)</dt>
-                <dd>{{ emp.affiliation.seniorityYearsDemo }} años</dd>
+                <dd>
+                  {{ emp.affiliation.seniorityYearsDemo !== null ? emp.affiliation.seniorityYearsDemo + ' años' : 'No disponible (v1)' }}
+                </dd>
               </div>
             </dl>
           </div>
