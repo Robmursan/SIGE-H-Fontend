@@ -43,7 +43,7 @@ describe('OrganizationHttpService & SystemHealthHttpService (F3-B OpenAPI v1 Con
     );
 
     const hospReq = httpMock.expectOne(
-      `http://127.0.0.1:3000/api/v1/hospitales?hospitalId=${HOSP_UUID_1}&limit=50`,
+      `/api/v1/hospitales?hospitalId=${HOSP_UUID_1}&limit=50`,
     );
     expect(hospReq.request.method).toBe('GET');
 
@@ -64,12 +64,12 @@ describe('OrganizationHttpService & SystemHealthHttpService (F3-B OpenAPI v1 Con
     hospReq.flush(mockHospitalsPage);
 
     const divReq = httpMock.expectOne(
-      `http://127.0.0.1:3000/api/v1/hospitales/${HOSP_UUID_1}/divisiones?divisionId=${DIV_UUID_1}&limit=50`,
+      `/api/v1/hospitales/${HOSP_UUID_1}/divisiones?divisionId=${DIV_UUID_1}&limit=50`,
     );
     expect(divReq.request.method).toBe('GET');
 
     const srvReq = httpMock.expectOne(
-      `http://127.0.0.1:3000/api/v1/servicios?hospitalId=${HOSP_UUID_1}&divisionId=${DIV_UUID_1}&limit=50`,
+      `/api/v1/servicios?hospitalId=${HOSP_UUID_1}&divisionId=${DIV_UUID_1}&limit=50`,
     );
     expect(srvReq.request.method).toBe('GET');
 
@@ -133,7 +133,7 @@ describe('OrganizationHttpService & SystemHealthHttpService (F3-B OpenAPI v1 Con
   it('should handle HTTP 503 (IAM/ORG disabled by default) without granting client bypass', async () => {
     const queryPromise = firstValueFrom(orgService.queryOrganization({}));
 
-    const hospReq = httpMock.expectOne('http://127.0.0.1:3000/api/v1/hospitales?limit=50');
+    const hospReq = httpMock.expectOne('/api/v1/hospitales?limit=50');
     hospReq.flush(
       {
         statusCode: 503,
@@ -153,7 +153,7 @@ describe('OrganizationHttpService & SystemHealthHttpService (F3-B OpenAPI v1 Con
 
   it('should handle HTTP 400 validation errors and HTTP 403 insufficient scope/faculty errors', async () => {
     const badReqPromise = firstValueFrom(orgService.queryOrganization({}));
-    const req400 = httpMock.expectOne('http://127.0.0.1:3000/api/v1/hospitales?limit=50');
+    const req400 = httpMock.expectOne('/api/v1/hospitales?limit=50');
     req400.flush(
       {
         statusCode: 400,
@@ -169,7 +169,7 @@ describe('OrganizationHttpService & SystemHealthHttpService (F3-B OpenAPI v1 Con
     expect(res400.error?.message).toContain('cursor must be a UUID');
 
     const forbiddenPromise = firstValueFrom(orgService.queryOrganization({}));
-    const req403 = httpMock.expectOne('http://127.0.0.1:3000/api/v1/hospitales?limit=50');
+    const req403 = httpMock.expectOne('/api/v1/hospitales?limit=50');
     req403.flush(
       {
         statusCode: 403,
@@ -187,7 +187,7 @@ describe('OrganizationHttpService & SystemHealthHttpService (F3-B OpenAPI v1 Con
 
   it('should consume /api/v1/health/live and /api/v1/meta/version', async () => {
     const livePromise = firstValueFrom(healthService.getHealthLive());
-    const liveReq = httpMock.expectOne('http://127.0.0.1:3000/api/v1/health/live');
+    const liveReq = httpMock.expectOne('/api/v1/health/live');
     liveReq.flush({
       status: 'ok',
       service: 'sige-h-api',
@@ -197,7 +197,7 @@ describe('OrganizationHttpService & SystemHealthHttpService (F3-B OpenAPI v1 Con
     expect(liveRes.status).toBe('ok');
 
     const verPromise = firstValueFrom(healthService.getApiContractVersion());
-    const verReq = httpMock.expectOne('http://127.0.0.1:3000/api/v1/meta/version');
+    const verReq = httpMock.expectOne('/api/v1/meta/version');
     verReq.flush({
       apiVersion: '1.0.0',
       apiBasePath: '/api/v1',

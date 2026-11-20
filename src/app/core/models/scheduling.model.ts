@@ -68,9 +68,33 @@ export interface ScheduleSchemeSummary {
   readonly shiftBadgeCode: string;
 }
 
+export type ScheduleEstado = 'PROGRAMADA' | 'CANCELADA' | 'SUSTITUIDA' | 'CERRADA';
+
+export interface ScopedScheduleRecord {
+  readonly programacionId: string;
+  readonly empleadoId: string;
+  readonly servicioId: string;
+  readonly horarioId: string | null;
+  readonly turnoCodigo: string | null;
+  readonly inicioProgramado: string;
+  readonly finProgramado: string;
+  readonly estado: ScheduleEstado;
+}
+
+export interface SchedulingCursorPaginationMeta {
+  readonly nextCursor: string | null;
+  readonly limit: number;
+  readonly order: 'id:asc';
+}
+
 export interface SchedulingQueryCriteria {
   readonly hospitalId?: string | 'ALL';
+  readonly divisionId?: string;
   readonly serviceId?: string | 'ALL';
+  readonly desde?: string;
+  readonly hasta?: string;
+  readonly cursor?: string;
+  readonly limit?: number;
   readonly shiftFilter?: 'ALL' | ShiftType | 'Jornada Acumulada';
   readonly schemeFilter?: 'ALL' | ScheduleSchemeType;
   readonly searchQuery?: string;
@@ -79,6 +103,11 @@ export interface SchedulingQueryCriteria {
 
 export interface WeeklyScheduleSnapshot {
   readonly metadata: DemoDataMetadata;
+  readonly projectionMode?: 'SYNTHETIC_FULL_DEMO' | 'OPENAPI_V1_SCOPED_PROGRAMMING';
+  readonly cursorPagination?: SchedulingCursorPaginationMeta;
+  readonly scopedItems?: readonly ScopedScheduleRecord[];
+  readonly windowDesdeIso?: string;
+  readonly windowHastaIso?: string;
   readonly weekRangeLabel: string;
   readonly weekDaysHeader: ReadonlyArray<{
     readonly dayIso: string;

@@ -10,6 +10,8 @@ export interface NormalizedHttpError {
   readonly title: string;
   readonly message: string;
   readonly requiredRoleHint?: string;
+  readonly retryAfterSeconds?: number;
+  readonly isIamRateLimitFormat?: boolean;
   readonly timestampIso: string;
 }
 
@@ -92,16 +94,22 @@ export function normalizeOpenApiHttpError(error: unknown): NormalizedHttpError {
           timestampIso,
         };
 
-      case 429:
+      case 429: {
+        const iamRateLimit = extractIamRateLimitError(error.error);
+        const retryAfterSeconds = parseRetryAfterSeconds(error.headers?.get('Retry-After'));
         return {
           status: 429,
           code: 'RATE_LIMIT_EXCEEDED',
-          title: 'Límite de Solicitudes Excedido (HTTP 429)',
+          title: 'Límite de Solicitudes IAM Excedido (HTTP 429)',
           message:
+            iamRateLimit?.message ??
             nestMsg ??
-            'Se alcanzó el límite persistente de intentos. Espere antes de reintentar la consulta.',
+            'Se alcanzó el límite persistente de intentos o capacidad KDF. Espere antes de reintentar.',
+          retryAfterSeconds,
+          isIamRateLimitFormat: Boolean(iamRateLimit),
           timestampIso,
         };
+      }
 
       case 503:
         return {
@@ -169,9 +177,38 @@ export function mapNormalizedErrorToQueryFailure(
       requiredRoleHint: isForbidden
         ? (err.requiredRoleHint ?? defaultRoleHint)
         : err.requiredRoleHint,
+      retryAfterSeconds: err.retryAfterSeconds,
       timestampIso: err.timestampIso,
     },
   };
+}
+
+function extractIamRateLimitError(
+  payload: unknown,
+): { readonly statusCode: 429; readonly message: string } | null {
+  if (typeof payload !== 'object' || payload === null) {
+    return null;
+  }
+  const rec = payload as Record<string, unknown>;
+  if (rec['statusCode'] === 429 && typeof rec['message'] === 'string' && rec['message'].trim().length > 0) {
+    return {
+      statusCode: 429,
+      message: rec['message'].trim(),
+    };
+  }
+  return null;
+}
+
+function parseRetryAfterSeconds(rawHeader: string | null | undefined): number | undefined {
+  if (!rawHeader) {
+    return undefined;
+  }
+  const trimmed = rawHeader.trim();
+  const parsed = Number.parseInt(trimmed, 10);
+  if (Number.isFinite(parsed) && parsed >= 0 && String(parsed) === trimmed) {
+    return parsed;
+  }
+  return undefined;
 }
 
 function extractNestErrorMessage(payload: unknown): string | null {

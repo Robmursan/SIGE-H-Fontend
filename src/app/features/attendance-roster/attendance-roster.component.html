@@ -1,0 +1,335 @@
+<section class="roster-page" aria-label="Consulta de Pases de Lista en Coordinación">
+  @if (!isRealOpenApiMode()) {
+    <app-demo-mode-banner
+      [datasetCode]="queryResult().snapshot?.metadata?.datasetCode ?? 'SIGEH-DEMO-F4F-PASES-LISTA-2026'"
+      [activeState]="queryResult().state"
+      (stateChange)="setSimulatedState($event)"
+    />
+  }
+
+  <header class="sigeh-panel roster-page__toolbar" data-testid="attendance-roster-toolbar">
+    <div class="roster-page__top">
+      <div>
+        <div class="roster-page__eyebrow">
+          MÓDULO F4-F · CONSULTA DE PASES DE LISTA EN COORDINACIÓN (SOLO LECTURA)
+        </div>
+        <h2 class="roster-page__title">Pases de Lista y Trazabilidad de Asistencia Operativa</h2>
+        <p class="roster-page__subtitle">
+          @if (isRealOpenApiMode()) {
+            Integración contractual de solo lectura con <code>GET /api/v1/pases-lista</code>
+            (<code>listScopedAttendanceRoster</code>). No realiza captura ni clasifica incidencias.
+          } @else {
+            Vista demostrativa sintética del estado operativo de pases de lista y su trazabilidad de registro.
+          }
+        </p>
+      </div>
+
+      <div class="sigeh-mode-controls" role="group" aria-label="Origen de datos de pases de lista">
+        <button
+          type="button"
+          class="sigeh-btn"
+          [class.sigeh-btn--primary]="!isRealOpenApiMode()"
+          [class.sigeh-btn--outline]="isRealOpenApiMode()"
+          data-testid="btn-roster-mode-synthetic"
+          (click)="setRosterDataSourceMode('SYNTHETIC_DEMO')"
+        >
+          Demo Sintético
+        </button>
+        <button
+          type="button"
+          class="sigeh-btn"
+          [class.sigeh-btn--primary]="isRealOpenApiMode()"
+          [class.sigeh-btn--outline]="!isRealOpenApiMode()"
+          data-testid="btn-roster-mode-openapi"
+          (click)="setRosterDataSourceMode('OPENAPI_HTTP_READY')"
+        >
+          OpenAPI v1 (Opt-In)
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="sigeh-v1-notice sigeh-v1-notice--semantic"
+      role="note"
+      data-testid="roster-semantic-separation-notice"
+    >
+      <strong>Separación semántica obligatoria (CU-ASI-01/02):</strong>
+      Esta vista consulta únicamente la <strong>asistencia operativa capturada</strong>
+      (<code>PRESENTE</code>, <code>AUSENTE</code>, <code>PARCIAL</code>, <code>PENDIENTE</code>,
+      <code>NO_EXIGIBLE</code>) y su trazabilidad (<code>registradoEn</code>, <code>actorId</code>,
+      <code>eventoId</code>). No equivale a programación laboral, no calcula cobertura efectiva y
+      <strong>no clasifica ni sustituye incidencias administrativas</strong>.
+    </div>
+
+    @if (isRealOpenApiMode() && !authSession.isAuthenticated()) {
+      <div class="sigeh-v1-notice sigeh-v1-notice--warn" role="alert" data-testid="roster-iam-required">
+        Requiere sesión IAM V2 activa para obtener el ámbito autorizado desde
+        <code>/api/v1/auth/me</code>. La facultad de lectura es validada exclusivamente por NestJS
+        (<code>ASISTENCIA_CAPTURAR</code> no implica autorización de lectura).
+        <a routerLink="/login">Ir a Sesión IAM V2</a>
+      </div>
+    }
+
+    <div class="sigeh-v1-metrics-grid" data-testid="roster-filters">
+      @if (isRealOpenApiMode()) {
+        <div>
+          <label for="roster-auth-hospital" class="sigeh-v1-metric-label">Hospital autorizado</label>
+          <select
+            id="roster-auth-hospital"
+            class="roster-page__control"
+            [ngModel]="authSession.selectedHospitalId() ?? ''"
+            (ngModelChange)="onAuthorizedHospitalChange($event)"
+            [disabled]="authSession.authorizedHospitals().length === 0"
+            data-testid="select-roster-hospital"
+          >
+            @if (authSession.authorizedHospitals().length === 0) {
+              <option value="">Sin hospital autorizado</option>
+            }
+            @for (h of authSession.authorizedHospitals(); track h.hospitalId) {
+              <option [value]="h.hospitalId">{{ h.displayLabel }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label for="roster-auth-service" class="sigeh-v1-metric-label">Servicio autorizado</label>
+          <select
+            id="roster-auth-service"
+            class="roster-page__control"
+            [ngModel]="authSession.selectedServiceId() ?? ''"
+            (ngModelChange)="onAuthorizedServiceChange($event)"
+            [disabled]="authSession.authorizedServicesForSelectedHospital().length === 0"
+            data-testid="select-roster-service"
+          >
+            @if (authSession.authorizedServicesForSelectedHospital().length === 0) {
+              <option value="">Sin servicio explícito autorizado</option>
+            }
+            @for (s of authSession.authorizedServicesForSelectedHospital(); track s.servicioId) {
+              <option [value]="s.servicioId">{{ s.displayLabel }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <div>
+        <label for="roster-fecha" class="sigeh-v1-metric-label">Fecha local de jornada (<code>fecha</code>)</label>
+        <input
+          id="roster-fecha"
+          type="date"
+          class="roster-page__control"
+          [ngModel]="fechaLocal()"
+          (ngModelChange)="onFechaChange($event)"
+          data-testid="input-roster-fecha"
+        />
+      </div>
+
+      @if (isRealOpenApiMode()) {
+        <div>
+          <label for="roster-horario-id" class="sigeh-v1-metric-label">Horario UUID (opcional)</label>
+          <input
+            id="roster-horario-id"
+            type="text"
+            class="roster-page__control font-mono"
+            placeholder="UUID de horario (opcional)"
+            [ngModel]="horarioIdFilter()"
+            (ngModelChange)="onHorarioIdChange($event)"
+            data-testid="input-roster-horario-id"
+          />
+        </div>
+      }
+
+      <div>
+        <label for="roster-estado-filter" class="sigeh-v1-metric-label">Estado operativo (página)</label>
+        <select
+          id="roster-estado-filter"
+          class="roster-page__control"
+          [ngModel]="estadoFilter()"
+          (ngModelChange)="onEstadoFilterChange($event)"
+          data-testid="select-roster-estado"
+        >
+          <option value="ALL">Todos los estados</option>
+          <option value="PRESENTE">PRESENTE</option>
+          <option value="PARCIAL">PARCIAL</option>
+          <option value="AUSENTE">AUSENTE</option>
+          <option value="PENDIENTE">PENDIENTE</option>
+          <option value="NO_EXIGIBLE">NO_EXIGIBLE</option>
+        </select>
+      </div>
+
+      @if (isRealOpenApiMode()) {
+        <div>
+          <label for="roster-limit" class="sigeh-v1-metric-label">Límite (<code>limit</code>)</label>
+          <select
+            id="roster-limit"
+            class="roster-page__control"
+            [ngModel]="openApiLimit()"
+            (ngModelChange)="onLimitChange($event)"
+            data-testid="select-roster-limit"
+          >
+            <option [ngValue]="10">10 registros</option>
+            <option [ngValue]="25">25 registros</option>
+            <option [ngValue]="50">50 registros</option>
+            <option [ngValue]="100">100 registros</option>
+          </select>
+        </div>
+      }
+    </div>
+
+    <div class="sigeh-mode-controls">
+      <button
+        type="button"
+        class="sigeh-btn sigeh-btn--outline"
+        data-testid="btn-roster-reset"
+        (click)="resetFilters()"
+      >
+        Restablecer filtros
+      </button>
+    </div>
+  </header>
+
+  @if (queryResult().state !== 'ready') {
+    <app-ui-state-panel
+      [state]="nonReadyState()"
+      [errorDetails]="queryResult().error"
+      (retryRequested)="refreshRoster()"
+      (resetRequested)="resetFilters()"
+      (restoreAccessRequested)="setSimulatedState('ready')"
+    />
+  }
+
+  @if (queryResult().state === 'ready' && queryResult().snapshot; as snap) {
+    <!-- Resumen estrictamente de los estados operativos visibles en esta página -->
+    <section class="sigeh-v1-metrics-grid" aria-label="Resumen de pases visibles" data-testid="roster-page-summary">
+      <article class="sigeh-v1-metric-card">
+        <span class="sigeh-v1-metric-label">PRESENTE (página)</span>
+        <strong class="sigeh-v1-metric-value">{{ pageOperationalCounts().presente }}</strong>
+      </article>
+      <article class="sigeh-v1-metric-card">
+        <span class="sigeh-v1-metric-label">PARCIAL (página)</span>
+        <strong class="sigeh-v1-metric-value">{{ pageOperationalCounts().parcial }}</strong>
+      </article>
+      <article class="sigeh-v1-metric-card">
+        <span class="sigeh-v1-metric-label">AUSENTE (página)</span>
+        <strong class="sigeh-v1-metric-value">{{ pageOperationalCounts().ausente }}</strong>
+      </article>
+      <article class="sigeh-v1-metric-card">
+        <span class="sigeh-v1-metric-label">PENDIENTE / NO EXIGIBLE</span>
+        <strong class="sigeh-v1-metric-value">
+          {{ pageOperationalCounts().pendiente + pageOperationalCounts().noExigible }}
+        </strong>
+      </article>
+    </section>
+
+    <section class="sigeh-panel" aria-labelledby="heading-roster-table" data-testid="roster-table-section">
+      <div class="sigeh-panel__header">
+        <div>
+          <h3 id="heading-roster-table" class="sigeh-panel__title">
+            {{
+              isRealOpenApiMode()
+                ? 'Registro de Pases de Lista (GET /api/v1/pases-lista)'
+                : 'Pases de Lista Sintéticos (Demostración)'
+            }}
+          </h3>
+          <p class="sigeh-panel__subtitle">
+            Fecha local: <code>{{ snap.fecha }}</code> · Zona horaria hospital:
+            <code>{{ snap.zonaHoraria }}</code> · Ámbito: <code>{{ snap.hospitalId }}</code> /
+            <code>{{ snap.servicioId }}</code>
+          </p>
+        </div>
+        <app-status-badge
+          variant="info"
+          [customLabel]="snap.items.length + ' jornadas en bloque #' + cursorPageIndex()"
+        />
+      </div>
+
+      <div class="sigeh-table-wrap">
+        <table class="sigeh-table" data-testid="attendance-roster-table">
+          <thead>
+            <tr>
+              <th scope="col">Empleado (sin RUD)</th>
+              <th scope="col">Programación / Turno</th>
+              <th scope="col">Asistencia Operativa</th>
+              <th scope="col">Validación Admin. / Rev.</th>
+              <th scope="col">Trazabilidad de Registro</th>
+              <th scope="col">Estado de Captura</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of snap.items; track item.programacionId) {
+              <tr [attr.data-testid]="'roster-row-' + item.programacionId">
+                <td>
+                  <strong>{{ item.empleado.fullName }}</strong>
+                  <div class="text-muted font-mono">{{ item.empleado.empleadoId }}</div>
+                </td>
+                <td>
+                  <strong>{{ item.turnoCodigo ?? 'Sin código turno' }}</strong>
+                  <div class="text-muted">{{ item.estadoProgramacion }}</div>
+                  <div class="text-muted font-mono">
+                    {{ item.inicioProgramado }} → {{ item.finProgramado }}
+                  </div>
+                </td>
+                <td>
+                  <app-status-badge
+                    [variant]="mapEstadoOperativoToVariant(item.estadoOperativo)"
+                    [customLabel]="item.estadoOperativo"
+                  />
+                  <div class="text-muted">
+                    {{ item.capturada ? 'Asistencia registrada' : 'Sin registro aún' }}
+                  </div>
+                </td>
+                <td>
+                  <strong>{{ item.validacionAdministrativa ?? 'Sin validación' }}</strong>
+                  <div class="text-muted font-mono">rev: {{ item.revision }}</div>
+                </td>
+                <td>
+                  @if (item.ultimaCaptura; as cap) {
+                    <div class="font-mono">{{ cap.registradoEn }}</div>
+                    <div class="text-muted font-mono">Autor: {{ cap.actorId }}</div>
+                    <div class="text-muted font-mono">Evento: #{{ cap.eventoId }}</div>
+                  } @else {
+                    <span class="text-muted">Sin captura registrada</span>
+                  }
+                </td>
+                <td>
+                  <span class="text-muted">
+                    {{ item.capturable ? 'Elegible (solo consulta aquí)' : (item.motivoNoCapturable ?? 'No capturable') }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (isRealOpenApiMode()) {
+        <footer class="sigeh-mode-controls" data-testid="roster-cursor-pagination">
+          <span class="text-muted">
+            @if (snap.cursorPagination.nextCursor; as nextC) {
+              Cursor siguiente: <code>{{ nextC.slice(0, 8) }}…</code>
+            } @else {
+              Fin de resultados (<code>nextCursor = null</code>)
+            }
+          </span>
+          <button
+            type="button"
+            class="sigeh-btn sigeh-btn--outline"
+            [disabled]="cursorPageIndex() <= 1"
+            data-testid="btn-roster-cursor-first"
+            (click)="resetCursorPagination()"
+          >
+            « Inicio
+          </button>
+          <button
+            type="button"
+            class="sigeh-btn sigeh-btn--outline"
+            [disabled]="!snap.cursorPagination.nextCursor"
+            data-testid="btn-roster-cursor-next"
+            (click)="loadNextCursorPage()"
+          >
+            Siguiente (cursor) ›
+          </button>
+        </footer>
+      }
+    </section>
+  }
+</section>

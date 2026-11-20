@@ -1,9 +1,5 @@
 import { Routes } from '@angular/router';
-import { AccessDeniedPageComponent } from './features/access-denied/access-denied-page.component';
-import { ExecutiveDashboardComponent } from './features/executive-dashboard/executive-dashboard.component';
-import { OrganizationExplorerComponent } from './features/organization-explorer/organization-explorer.component';
-import { PersonnelManagementComponent } from './features/personnel-management/personnel-management.component';
-import { WorkSchedulingComponent } from './features/work-scheduling/work-scheduling.component';
+import { iamAuthGuard } from './core/security/iam-auth.guard';
 import { InstitutionalShellComponent } from './layout/shell/institutional-shell.component';
 
 export const routes: Routes = [
@@ -17,28 +13,64 @@ export const routes: Routes = [
         redirectTo: 'dashboard',
       },
       {
+        path: 'login',
+        loadComponent: () =>
+          import('./features/auth-login/auth-login.component').then(
+            (m) => m.AuthLoginComponent,
+          ),
+        title: 'SIGE-H | Acceso IAM V2 y Contexto Hospitalario',
+      },
+      {
         path: 'dashboard',
-        component: ExecutiveDashboardComponent,
+        loadComponent: () =>
+          import('./features/executive-dashboard/executive-dashboard.component').then(
+            (m) => m.ExecutiveDashboardComponent,
+          ),
+        canActivate: [iamAuthGuard],
         title: 'SIGE-H | Tablero Ejecutivo de Enfermería (Demo)',
       },
       {
         path: 'organizacion',
-        component: OrganizationExplorerComponent,
+        loadComponent: () =>
+          import('./features/organization-explorer/organization-explorer.component').then(
+            (m) => m.OrganizationExplorerComponent,
+          ),
+        canActivate: [iamAuthGuard],
         title: 'SIGE-H | Organización Hospitalaria (Demo F2)',
       },
       {
         path: 'personal',
-        component: PersonnelManagementComponent,
+        loadComponent: () =>
+          import('./features/personnel-management/personnel-management.component').then(
+            (m) => m.PersonnelManagementComponent,
+          ),
+        canActivate: [iamAuthGuard],
         title: 'SIGE-H | Gestión de Personal (Demo F2)',
       },
       {
         path: 'programacion',
-        component: WorkSchedulingComponent,
+        loadComponent: () =>
+          import('./features/work-scheduling/work-scheduling.component').then(
+            (m) => m.WorkSchedulingComponent,
+          ),
+        canActivate: [iamAuthGuard],
         title: 'SIGE-H | Programación Laboral Semanal (Demo F2)',
       },
       {
+        path: 'pases-lista',
+        loadComponent: () =>
+          import('./features/attendance-roster/attendance-roster.component').then(
+            (m) => m.AttendanceRosterComponent,
+          ),
+        canActivate: [iamAuthGuard],
+        title: 'SIGE-H | Consulta de Pases de Lista (Coordinación F4-F)',
+      },
+      {
         path: 'acceso-restringido',
-        component: AccessDeniedPageComponent,
+        loadComponent: () =>
+          import('./features/access-denied/access-denied-page.component').then(
+            (m) => m.AccessDeniedPageComponent,
+          ),
         title: 'SIGE-H | Acceso Restringido (Demo 403)',
       },
       {

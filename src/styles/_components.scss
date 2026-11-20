@@ -95,3 +95,94 @@
 .text-muted {
   color: var(--sigeh-text-muted);
 }
+
+/* Utilidades compartidas OpenAPI v1 Opt-In (F4-D) */
+.sigeh-mode-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sigeh-v1-notice {
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--sigeh-radius-md);
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a8a;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+
+  &--warn {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+  }
+
+  &--semantic {
+    background: #fefce8;
+    border: 1px solid #facc15;
+    color: #713f12;
+  }
+}
+
+.sigeh-v1-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--sigeh-space-3);
+
+  > div {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  select,
+  input {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+
+.sigeh-v1-metric-card {
+  padding: var(--sigeh-space-4);
+  border-radius: var(--sigeh-radius-md);
+  border: 1px solid var(--sigeh-border-subtle);
+  background: var(--sigeh-surface-card);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sigeh-v1-metric-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sigeh-text-muted);
+}
+
+.sigeh-v1-metric-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--sigeh-primary-950);
+  font-variant-numeric: tabular-nums;
+}
+
+.sigeh-v1-unavailable-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sigeh-space-3);
+}
+
+.sigeh-v1-unavailable-card {
+  padding: var(--sigeh-space-4);
+  border-radius: var(--sigeh-radius-md);
+  border: 1px dashed var(--sigeh-border-strong);
+  background: var(--sigeh-surface-subtle);
+  font-size: 0.82rem;
+  color: var(--sigeh-text-secondary);
+}

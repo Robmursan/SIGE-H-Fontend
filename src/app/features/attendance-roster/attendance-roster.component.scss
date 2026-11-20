@@ -1,0 +1,50 @@
+.roster-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sigeh-space-5);
+}
+
+.roster-page__toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sigeh-space-3);
+}
+
+.roster-page__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sigeh-space-3);
+}
+
+.roster-page__eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--sigeh-clinical-700);
+}
+
+.roster-page__title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--sigeh-primary-950);
+  margin: 0.2rem 0;
+}
+
+.roster-page__subtitle {
+  font-size: 0.85rem;
+  color: var(--sigeh-text-secondary);
+  margin: 0;
+}
+
+.roster-page__control {
+  padding: 0.45rem 0.7rem;
+  font-size: 0.82rem;
+  border: 1px solid var(--sigeh-border-strong);
+  border-radius: var(--sigeh-radius-md);
+  background: #fff;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}

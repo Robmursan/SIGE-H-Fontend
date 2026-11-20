@@ -1,0 +1,296 @@
+<section class="auth-page" aria-labelledby="auth-page-title">
+  <header class="auth-page__header">
+    <div>
+      <span class="auth-page__eyebrow">FASE F4-B · AUTENTICACIÓN IAM V2 Y CONTEXTO HOSPITALARIO</span>
+      <h2 id="auth-page-title" class="auth-page__title">
+        Acceso Institucional IAM V2 (Memoria Volátil)
+      </h2>
+      <p class="auth-page__subtitle">
+        Integración contractual con <code>/api/v1/auth/*</code> en mismo origen (<code>/api</code>) sin persistencia en
+        <code>localStorage</code> ni <code>sessionStorage</code>.
+      </p>
+    </div>
+
+    <div class="auth-page__badges">
+      <app-status-badge
+        [variant]="authSession.isIamEnabled() ? 'optimal' : 'demo'"
+        [customLabel]="
+          authSession.isIamEnabled()
+            ? 'IAM V2 Activo (Guard Habilitado)'
+            : 'IAM Inactivo por Defecto (Opt-In)'
+        "
+      />
+      <a class="auth-page__demo-link" routerLink="/dashboard" data-testid="btn-return-demo">
+        Ir al Tablero (Modo Demo)
+      </a>
+    </div>
+  </header>
+
+  <section class="auth-card" data-testid="qa-mode-activation-panel">
+    <div class="auth-card__head">
+      <div>
+        <h3 class="auth-card__title">Control Explícito de Sesión QA (Solo en Memoria RAM)</h3>
+        <p class="auth-card__desc">
+          Por defecto el sistema arranca en <code>SYNTHETIC_DEMO</code> con <code>iamEnabled = false</code>.
+          Active la integración QA únicamente durante sesiones de validación autorizadas; nunca se persiste al recargar.
+        </p>
+      </div>
+      <div class="sigeh-mode-controls">
+        <button
+          type="button"
+          class="auth-btn auth-btn--primary"
+          data-testid="btn-activate-qa-session"
+          [disabled]="isQaIntegrationModeActive()"
+          (click)="activateQaIntegrationSession()"
+        >
+          Activar Integración QA (IAM + API v1)
+        </button>
+        <button
+          type="button"
+          class="auth-btn auth-btn--secondary"
+          data-testid="btn-restore-synthetic-demo"
+          [disabled]="!isQaIntegrationModeActive() && !authSession.isAuthenticated()"
+          (click)="restoreSafeSyntheticDemoMode()"
+        >
+          Restaurar Modo Demo Seguro
+        </button>
+      </div>
+    </div>
+  </section>
+
+  @if (!authSession.isIamEnabled()) {
+    <div class="auth-notice auth-notice--info" role="status" data-testid="iam-disabled-default-notice">
+      <strong>Modo seguro predeterminado activo (<code>SYNTHETIC_DEMO</code>):</strong>
+      La protección de rutas IAM permanece deshabilitada por defecto (<code>iamEnabled = false</code>).
+      Las pantallas de demostración siguen accesibles sin iniciar sesión. En el backend NestJS, IAM también
+      permanece deshabilitado por defecto (HTTP 503) hasta activar una instancia QA autorizada.
+    </div>
+  }
+
+  @if (localValidationMessage(); as msg) {
+    <div class="auth-notice auth-notice--warn" role="alert" data-testid="auth-local-validation">
+      {{ msg }}
+    </div>
+  }
+
+  @if (authSession.lastError(); as err) {
+    <div class="auth-notice auth-notice--error" role="alert" data-testid="auth-http-error">
+      <strong>{{ err.title }}</strong>
+      <p>{{ err.message }}</p>
+      @if (err.retryAfterSeconds !== undefined) {
+        <small>Reintentar después de {{ err.retryAfterSeconds }} s.</small>
+      }
+    </div>
+  }
+
+  @if (statusFeedback(); as feedback) {
+    <div class="auth-notice auth-notice--success" role="status" data-testid="auth-status-feedback">
+      {{ feedback }}
+    </div>
+  }
+
+  <div class="auth-grid">
+    @if (!authSession.isAuthenticated()) {
+      <article class="auth-card" data-testid="login-form-card">
+        <h3 class="auth-card__title">Iniciar Sesión IAM V2</h3>
+        <p class="auth-card__desc">
+          Las credenciales se envían exclusivamente mediante <code>POST /api/v1/auth/login</code> y los
+          tokens residen únicamente en memoria RAM volátil.
+        </p>
+
+        <form class="auth-form" (ngSubmit)="submitLogin()" novalidate>
+          <div class="auth-form__field">
+            <label for="iam-identificador">Identificador institucional</label>
+            <input
+              id="iam-identificador"
+              name="identificador"
+              type="text"
+              autocomplete="username"
+              maxlength="100"
+              placeholder="cuenta_institucional"
+              data-testid="input-identificador"
+              [ngModel]="identificador()"
+              (ngModelChange)="onIdentificadorChange($event)"
+            />
+          </div>
+
+          <div class="auth-form__field">
+            <label for="iam-password">Contraseña</label>
+            <input
+              id="iam-password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              maxlength="1024"
+              placeholder="••••••••••••"
+              data-testid="input-password"
+              [ngModel]="password()"
+              (ngModelChange)="onPasswordChange($event)"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="auth-btn auth-btn--primary"
+            data-testid="btn-submit-login"
+            [disabled]="!canSubmit()"
+          >
+            {{ authSession.isBusy() ? 'Autenticando...' : 'Iniciar sesión IAM V2' }}
+          </button>
+        </form>
+      </article>
+    } @else {
+      <article class="auth-card" data-testid="authenticated-session-card">
+        <div class="auth-card__head">
+          <h3 class="auth-card__title">Sesión Activa en Memoria RAM</h3>
+          <button
+            type="button"
+            class="auth-btn auth-btn--danger"
+            data-testid="btn-logout"
+            [disabled]="authSession.isBusy()"
+            (click)="logoutSession()"
+          >
+            Cerrar sesión y limpiar memoria
+          </button>
+        </div>
+
+        @if (authSession.profile(); as prof) {
+          <dl class="auth-meta">
+            <div>
+              <dt>Usuario UUID</dt>
+              <dd data-testid="profile-usuario-id"><code>{{ prof.usuarioId }}</code></dd>
+            </div>
+            <div>
+              <dt>Sesión UUID</dt>
+              <dd data-testid="profile-session-id"><code>{{ prof.sessionId }}</code></dd>
+            </div>
+            <div>
+              <dt>Proveedor</dt>
+              <dd>{{ prof.provider }}</dd>
+            </div>
+            <div>
+              <dt>Expiración accessToken</dt>
+              <dd>{{ authSession.sessionSummary().expiresAtIso ?? 'Sin expiración calculada' }}</dd>
+            </div>
+          </dl>
+        }
+
+        <div class="auth-context" data-testid="authorized-context-panel">
+          <h4>Contexto Hospitalario Autorizado (derivado de <code>/auth/me</code>)</h4>
+
+          @if (authSession.scopeLimitationNotice(); as notice) {
+            <div
+              class="auth-notice auth-notice--info"
+              role="note"
+              data-testid="scope-limitation-notice"
+            >
+              {{ notice.message }}
+            </div>
+          }
+
+          @if (authSession.authorizedHospitals().length > 0) {
+            <div class="auth-form__field">
+              <label for="authorized-hospital-select">Hospital autorizado</label>
+              <select
+                id="authorized-hospital-select"
+                data-testid="select-authorized-hospital"
+                [ngModel]="authSession.selectedHospitalId() ?? ''"
+                (ngModelChange)="onHospitalSelectionChange($event)"
+              >
+                @for (hosp of authSession.authorizedHospitals(); track hosp.hospitalId) {
+                  <option [value]="hosp.hospitalId">{{ hosp.displayLabel }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="auth-form__field">
+              <label for="authorized-service-select">Servicio autorizado</label>
+              @if (authSession.authorizedServicesForSelectedHospital().length > 0) {
+                <select
+                  id="authorized-service-select"
+                  data-testid="select-authorized-service"
+                  [ngModel]="authSession.selectedServiceId() ?? ''"
+                  (ngModelChange)="onServiceSelectionChange($event)"
+                >
+                  @for (srv of authSession.authorizedServicesForSelectedHospital(); track srv.servicioId) {
+                    <option [value]="srv.servicioId">{{ srv.displayLabel }}</option>
+                  }
+                </select>
+              } @else {
+                <p class="auth-muted" data-testid="no-explicit-service-selector">
+                  Sin servicios explícitos enumerados en <code>/auth/me</code> para este hospital.
+                  No se inventa ningún <code>servicioId</code>.
+                </p>
+              }
+            </div>
+
+            <div class="sigeh-mode-controls" data-testid="authenticated-journey-links">
+              <a class="auth-page__demo-link" routerLink="/personal" data-testid="journey-link-personal">
+                Ir a Padrón de Personal →
+              </a>
+              <a class="auth-page__demo-link" routerLink="/programacion" data-testid="journey-link-programacion">
+                Ir a Programación →
+              </a>
+              <a class="auth-page__demo-link" routerLink="/pases-lista" data-testid="journey-link-pases-lista">
+                Ir a Pases de Lista →
+              </a>
+              <a class="auth-page__demo-link" routerLink="/dashboard" data-testid="journey-link-dashboard">
+                Ir a Tablero de Coordinación →
+              </a>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="auth-card" data-testid="sessions-management-card">
+        <div class="auth-card__head">
+          <h3 class="auth-card__title">Sesiones Persistentes (<code>/auth/sessions</code>)</h3>
+          <button
+            type="button"
+            class="auth-btn auth-btn--secondary"
+            data-testid="btn-load-sessions"
+            [disabled]="authSession.isBusy()"
+            (click)="loadActiveSessions()"
+          >
+            Consultar sesiones
+          </button>
+        </div>
+
+        @if (authSession.sessions().length === 0) {
+          <p class="auth-muted">
+            Pulse «Consultar sesiones» para cargar sus sesiones registradas desde el backend IAM.
+          </p>
+        } @else {
+          <ul class="session-list" data-testid="session-list">
+            @for (sess of authSession.sessions(); track sess.sessionId) {
+              <li class="session-list__item">
+                <div>
+                  <code>{{ sess.sessionId }}</code>
+                  @if (sess.current) {
+                    <span class="session-tag">Actual</span>
+                  }
+                  <div class="session-list__dates">
+                    Expira: {{ sess.expiresAt }} · Inactividad: {{ sess.idleExpiresAt }}
+                  </div>
+                </div>
+                @if (!sess.revokedAt) {
+                  <button
+                    type="button"
+                    class="auth-btn auth-btn--danger-outline"
+                    [attr.data-testid]="'btn-revoke-' + sess.sessionId"
+                    [disabled]="authSession.isBusy()"
+                    (click)="revokeSession(sess.sessionId)"
+                  >
+                    Revocar
+                  </button>
+                } @else {
+                  <span class="session-tag session-tag--revoked">Revocada</span>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </article>
+    }
+  </div>
+</section>

@@ -12,8 +12,8 @@ import {
   provideSigehConfigurableGateways,
 } from './gateway-selector.service';
 
-describe('GatewaySelectorService (F3-A / F3-B Configurable Synthetic vs OpenAPI HTTP)', () => {
-  it('should keep SYNTHETIC_DEMO as default, prepare http://127.0.0.1:3000 as local base URL, and keep IAM disabled', () => {
+describe('GatewaySelectorService (F3-A / F3-B / F4-A Configurable Synthetic vs OpenAPI HTTP)', () => {
+  it('should keep SYNTHETIC_DEMO as default, use same-origin empty openApiBaseUrl for /api proxy, and keep IAM disabled', () => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -26,8 +26,9 @@ describe('GatewaySelectorService (F3-A / F3-B Configurable Synthetic vs OpenAPI 
     const selector = TestBed.inject(GatewaySelectorService);
     const orgGateway = TestBed.inject(ORGANIZATION_GATEWAY);
 
+    expect(config.phase).toBe('F4-F');
     expect(config.dataSourceMode).toBe('SYNTHETIC_DEMO');
-    expect(config.openApiBaseUrl).toBe('http://127.0.0.1:3000');
+    expect(config.openApiBaseUrl).toBe('');
     expect(config.apiBasePath).toBe('/api/v1');
     expect(config.iamEnabled).toBe(false);
     expect(selector.effectiveGlobalMode()).toBe('SYNTHETIC_DEMO');
@@ -85,5 +86,27 @@ describe('GatewaySelectorService (F3-A / F3-B Configurable Synthetic vs OpenAPI 
 
     const selector = TestBed.inject(GatewaySelectorService);
     expect(selector.resolveEffectiveMode('personnel')).toBe('SYNTHETIC_DEMO');
+  });
+
+  it('should treat openApiBaseUrl = "" (same-origin) as configured when enforceSyntheticFallbackWhenUnconfigured is true', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: SIGEH_RUNTIME_CONFIG,
+          useValue: {
+            ...DEFAULT_SIGEH_RUNTIME_CONFIG,
+            dataSourceMode: 'OPENAPI_HTTP_READY',
+            openApiBaseUrl: '',
+            enforceSyntheticFallbackWhenUnconfigured: true,
+          },
+        },
+        ...provideSigehConfigurableGateways(),
+      ],
+    });
+
+    const selector = TestBed.inject(GatewaySelectorService);
+    expect(selector.resolveEffectiveMode('organization')).toBe('OPENAPI_HTTP_READY');
   });
 });

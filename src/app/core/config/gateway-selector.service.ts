@@ -1,12 +1,18 @@
 import { computed, inject, Injectable, Provider, signal } from '@angular/core';
+import { SyntheticAttendanceRosterAdapter } from '../adapters/synthetic-attendance-roster.adapter';
 import { SyntheticExecutiveDashboardAdapter } from '../adapters/synthetic-executive-dashboard.adapter';
 import { SyntheticOrganizationAdapter } from '../adapters/synthetic-organization.adapter';
 import { SyntheticPersonnelAdapter } from '../adapters/synthetic-personnel.adapter';
 import { SyntheticSchedulingAdapter } from '../adapters/synthetic-scheduling.adapter';
+import { AttendanceRosterHttpService } from '../http/attendance-roster-http.service';
 import { ExecutiveDashboardHttpService } from '../http/executive-dashboard-http.service';
 import { OrganizationHttpService } from '../http/organization-http.service';
 import { PersonnelHttpService } from '../http/personnel-http.service';
 import { SchedulingHttpService } from '../http/scheduling-http.service';
+import {
+  ATTENDANCE_ROSTER_GATEWAY,
+  AttendanceRosterGateway,
+} from '../ports/attendance-roster.gateway';
 import {
   EXECUTIVE_DASHBOARD_GATEWAY,
   ExecutiveDashboardGateway,
@@ -66,7 +72,7 @@ export class GatewaySelectorService {
     if (
       requestedMode === 'OPENAPI_HTTP_READY' &&
       this.runtimeConfig.enforceSyntheticFallbackWhenUnconfigured &&
-      !this.runtimeConfig.openApiBaseUrl
+      this.runtimeConfig.openApiBaseUrl === null
     ) {
       return 'SYNTHETIC_DEMO';
     }
@@ -167,6 +173,18 @@ export class ConfigurablePersonnelGateway implements PersonnelGateway {
     return this.activeGateway().queryPersonnel(...args);
   }
 
+  public getEmployeeDetail(
+    ...args: Parameters<PersonnelGateway['getEmployeeDetail']>
+  ): ReturnType<PersonnelGateway['getEmployeeDetail']> {
+    return this.activeGateway().getEmployeeDetail(...args);
+  }
+
+  public listContractAssignments(
+    ...args: Parameters<PersonnelGateway['listContractAssignments']>
+  ): ReturnType<PersonnelGateway['listContractAssignments']> {
+    return this.activeGateway().listContractAssignments(...args);
+  }
+
   private activeGateway(): PersonnelGateway {
     return this.selector.selectGateway<PersonnelGateway>(
       'personnel',
@@ -205,6 +223,35 @@ export class ConfigurableSchedulingGateway implements SchedulingGateway {
   }
 }
 
+@Injectable({ providedIn: 'root' })
+export class ConfigurableAttendanceRosterGateway implements AttendanceRosterGateway {
+  private readonly selector = inject(GatewaySelectorService);
+  private readonly synthetic = inject(SyntheticAttendanceRosterAdapter);
+  private readonly http = inject(AttendanceRosterHttpService);
+
+  public get adapterName(): string {
+    return this.activeGateway().adapterName;
+  }
+
+  public get isSyntheticDemo(): boolean {
+    return this.activeGateway().isSyntheticDemo;
+  }
+
+  public queryAttendanceRoster(
+    ...args: Parameters<AttendanceRosterGateway['queryAttendanceRoster']>
+  ): ReturnType<AttendanceRosterGateway['queryAttendanceRoster']> {
+    return this.activeGateway().queryAttendanceRoster(...args);
+  }
+
+  private activeGateway(): AttendanceRosterGateway {
+    return this.selector.selectGateway<AttendanceRosterGateway>(
+      'attendance-roster',
+      this.synthetic,
+      this.http,
+    );
+  }
+}
+
 export function provideSigehConfigurableGateways(): Provider[] {
   return [
     {
@@ -222,6 +269,10 @@ export function provideSigehConfigurableGateways(): Provider[] {
     {
       provide: SCHEDULING_GATEWAY,
       useExisting: ConfigurableSchedulingGateway,
+    },
+    {
+      provide: ATTENDANCE_ROSTER_GATEWAY,
+      useExisting: ConfigurableAttendanceRosterGateway,
     },
   ];
 }

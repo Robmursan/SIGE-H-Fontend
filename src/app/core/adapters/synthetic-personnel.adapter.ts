@@ -2,6 +2,10 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { DemoDataMetadata, KpiMetric } from '../models/executive-dashboard.model';
 import {
+  ContractAssignmentsQueryCriteria,
+  ContractAssignmentsQueryResult,
+  EmployeeDetailQueryCriteria,
+  EmployeeDetailQueryResult,
   PersonnelQueryCriteria,
   PersonnelQueryResult,
   StaffMemberRecord,
@@ -539,5 +543,75 @@ export class SyntheticPersonnelAdapter implements PersonnelGateway {
         summary: 'Proporción de personal con categoría nominal de especialista o jefatura.',
       },
     ];
+  }
+
+  public getEmployeeDetail(
+    criteria: EmployeeDetailQueryCriteria,
+  ): Observable<EmployeeDetailQueryResult> {
+    const employee = SYNTHETIC_STAFF_RECORDS.find((e) => e.employeeId === criteria.empleadoId);
+    if (!employee) {
+      return of({
+        state: 'error',
+        detail: null,
+        error: {
+          code: 'RESOURCE_NOT_FOUND',
+          httpStatus: 404,
+          title: 'Empleado Demo No Encontrado',
+          message: 'El identificador de empleado sintético no existe en el padrón de demostración.',
+          timestampIso: new Date().toISOString(),
+        },
+      });
+    }
+
+    const syntheticContractId = `CONT-DEMO-${employee.employeeId}`;
+    return of({
+      state: 'ready',
+      detail: {
+        employee,
+        assignments: [
+          {
+            adscripcionId: `ADSC-DEMO-${employee.employeeId}`,
+            contratoId: syntheticContractId,
+            servicioId: employee.affiliation.serviceId,
+            clase: 'OPERATIVA',
+            inicio: '2026-01-01',
+            fin: null,
+          },
+        ],
+        assignmentsPagination: {
+          nextCursor: null,
+          limit: criteria.limit ?? 50,
+          order: 'id:asc',
+        },
+        distinctContractIds: [syntheticContractId],
+        isLimitedProjection: false,
+      },
+      error: null,
+    });
+  }
+
+  public listContractAssignments(
+    criteria: ContractAssignmentsQueryCriteria,
+  ): Observable<ContractAssignmentsQueryResult> {
+    return of({
+      state: 'ready',
+      contratoId: criteria.contratoId,
+      items: [
+        {
+          adscripcionId: `ADSC-DEMO-${criteria.contratoId}`,
+          contratoId: criteria.contratoId,
+          servicioId: criteria.servicioId,
+          clase: 'OPERATIVA',
+          inicio: '2026-01-01',
+          fin: null,
+        },
+      ],
+      cursorPagination: {
+        nextCursor: null,
+        limit: criteria.limit ?? 50,
+        order: 'id:asc',
+      },
+      error: null,
+    });
   }
 }

@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "validate:openapi": "node scripts/validate-openapi-contract.mjs",
+    "e2e:mock": "node e2e/sigeh-ui-mock-e2e.mjs",
+    "e2e:real-qa": "node e2e/sigeh-real-qa-e2e.mjs"
   },
   "private": true,
   "packageManager": "npm@12.0.2",
